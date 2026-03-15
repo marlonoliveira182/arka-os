@@ -68,6 +68,7 @@ ARKA OS installs a global `arka` command:
 - **Python:** Type hints, docstrings, virtual environments
 - **Git:** Conventional commits, feature branches, PR reviews
 - **Never:** Options API, raw SQL in controllers, business logic in controllers
+- **Enterprise workflow:** All `/dev feature` and `/dev api` commands follow an 8-phase workflow: orchestration → research → architecture → implementation → self-critique → security audit → QA → documentation
 
 ## Development Worktree (Mandatory)
 
@@ -109,7 +110,7 @@ Config: `mcps/stacks/laravel-packages.json`
 | Department | Prefix | Purpose |
 |-----------|--------|---------|
 | Core System | `/arka` | System-level commands (standup, monitor, status, onboard) |
-| Development | `/dev` | Code, build, deploy, review, scaffold, onboard, MCP management, ecosystems, external skills |
+| Development | `/dev` | Code, build, deploy, review, scaffold, plan, security-audit, research, onboard, MCP management, ecosystems, external skills |
 | Marketing | `/mkt` | Social media, content, affiliates, ads |
 | E-commerce | `/ecom` | Store management, products, optimization |
 | Finance | `/fin` | Financial planning, investment, negotiation |
@@ -203,7 +204,7 @@ Config: `knowledge/channels-config.json`
 ARKA OS has two tiers:
 
 ### Community (this repo)
-- 7 departments, 10 personas, 21 MCPs
+- 7 departments, 15 personas, 21 MCPs
 - Full scaffolding (9 types), MCP management, Obsidian integration
 - External skill system, CLI command, auto-updates
 

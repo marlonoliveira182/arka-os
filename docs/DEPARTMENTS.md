@@ -44,37 +44,70 @@ System reports are saved to `WizardingCode/Operations/` in your Obsidian vault.
 
 ### What This Department Does
 
-The Development department handles everything related to building software — creating new projects, writing features, reviewing code, running tests, and deploying. It follows strict coding standards and always reads your project context before making changes.
+The Development department is an enterprise-grade team of 9 specialized agents that handles everything related to building software — planning architecture, researching libraries, creating projects, writing features with mandatory security audits and self-critique, reviewing code, running tests, and deploying. It follows a structured multi-phase workflow with TODO tracking and always reads your project context before making changes.
 
 ### The Team
 
 **Marco — CTO**
-15 years of experience building SaaS products and APIs. Marco makes architecture decisions, reviews code, and prioritizes security above everything else. He's opinionated but backs it up with evidence. His priority order: security, scalability, maintainability, then speed.
+15 years of experience building SaaS products and APIs. Marco is the final technical authority — he makes architecture decisions, reviews code, and has veto power on any design. His priority order: security, scalability, maintainability, then speed.
 
-**Andre — Senior Developer**
-10 years building web applications. Andre is the builder — he reads existing code patterns before writing anything new, handles edge cases, and follows your project's conventions exactly. He always reads 2-3 similar files before creating a new one.
+**Paulo — Tech Lead (Orchestrator)**
+12 years leading engineering teams. Paulo doesn't write code — he orchestrates. He creates TODO lists before any work begins, manages workflow phases, coordinates the team, and writes final reports. Nothing starts without Paulo's plan.
 
-**Rita — QA Engineer**
-Rita is the one who breaks things — on purpose. She tests the happy path, the sad path, and every edge case she can find. Functionality, validation, authentication, error handling — nothing gets past her.
+**Gabriel — Software Architect**
+12 years designing systems. Gabriel designs before anyone builds — data flows, API contracts, component hierarchies, schema changes. He writes Architecture Decision Records (ADRs) to Obsidian and gets Marco's approval before implementation starts.
 
-**Carlos — DevOps Engineer**
-Carlos automates everything. Docker, CI/CD pipelines, cloud deployments, SSL certificates, monitoring — he wants zero manual steps in your deployment process. If it can be automated, it should be.
+**Andre — Senior Backend Developer**
+10 years building web applications. Andre is the backend builder — Laravel, PHP, PostgreSQL, API design. He reads existing code patterns before writing anything new, follows the implementation order (Migration → Model → Service → Controller → FormRequest → Resource → Routes), and always reads 2-3 similar files first.
+
+**Diana — Senior Frontend Developer**
+8 years building user interfaces. Diana handles Vue 3, Nuxt 3, React, and Next.js. She thinks in components, demands pixel-perfect UIs, and never ships without loading states, error states, empty states, and accessibility (ARIA, keyboard nav).
+
+**Bruno — Security Engineer**
+10 years in application security. Bruno runs OWASP Top 10 checks on every feature before it ships. He's professionally paranoid — every input is malicious until proven otherwise. Critical issues block shipping, period.
+
+**Rita — QA Lead**
+Rita breaks things — on purpose — and defines the quality bar. She designs test strategies, writes feature/unit/component tests, enforces quality gates (≥80% coverage, all tests green), and blocks shipping when criteria aren't met.
+
+**Carlos — DevOps Lead**
+9 years automating infrastructure. Carlos handles CI/CD pipelines, Docker, zero-downtime deployments, monitoring (Sentry), and environment management. If it can be automated, it will be.
+
+**Lucas — Technical Analyst**
+7 years in technical research. Lucas fetches up-to-date framework docs via Context7 MCP, searches the Obsidian KB for existing patterns, evaluates libraries, and documents everything. Every development session starts with his research.
+
+### Enterprise Workflow
+
+Features and APIs follow an 8-phase enterprise workflow:
+
+1. **Orchestration** — Paulo creates TODO list, enters worktree, detects stack
+2. **Research** — Lucas fetches docs (Context7), searches KB, checks codebase
+3. **Architecture** — Gabriel designs, writes ADR. Marco reviews and approves.
+4. **Implementation** — Andre (backend) + Diana (frontend) build in parallel
+5. **Self-Critique** — Each developer reviews their own work against checklists
+6. **Security Audit** — Bruno runs OWASP Top 10 against new code
+7. **QA** — Rita writes tests, runs suite, enforces quality gate
+8. **Documentation** — Lucas saves patterns to KB, Paulo writes final report
+
+Simpler commands (debug, refactor, db) use a focused 3-4 phase workflow. Read-only commands (review, test, deploy, docs, research) use 1-2 phases.
 
 ### What You Can Do
 
 | Command | What Happens |
 |---------|-------------|
 | `/dev scaffold <type> <name>` | Create a complete project from a starter template with dependencies installed and integrations configured |
-| `/dev feature <description>` | Implement a new feature following your project's patterns and conventions |
-| `/dev api <spec>` | Generate API endpoints with controllers, validation, resources, routes, and tests |
-| `/dev debug <issue>` | Diagnose and fix a bug with a regression test |
+| `/dev feature <description>` | Implement a new feature with full 8-phase enterprise workflow |
+| `/dev api <spec>` | Generate API endpoints with full 8-phase enterprise workflow |
+| `/dev plan <description>` | Architecture planning only — Gabriel designs, no code changes |
+| `/dev debug <issue>` | Diagnose and fix a bug with triage, fix, and regression test |
 | `/dev refactor <target>` | Refactor code with quality gates — tests must pass before and after |
-| `/dev review` | Get Marco to review your code for security issues, performance problems, and convention violations |
-| `/dev test` | Run your test suite and get a report from Rita |
+| `/dev review` | Code review from Marco (CTO) + Bruno (Security) |
+| `/dev test` | Run your test suite and get a quality report from Rita |
 | `/dev deploy <environment>` | Deploy to staging or production |
 | `/dev db <description>` | Create database migrations and update models |
 | `/dev docs` | Generate technical documentation |
 | `/dev stack-check` | Check for dependency updates |
+| `/dev security-audit` | Standalone OWASP security audit of your codebase |
+| `/dev research <topic>` | Research a library, framework, or integration with Context7 docs |
 | `/dev mcp apply <profile>` | Configure integrations for a project |
 | `/dev skill install <url>` | Install a community skill |
 
@@ -91,33 +124,36 @@ You don't need to do anything — the worktree is created automatically when you
 
 ### Real-World Examples
 
-**Start a new Laravel project:**
-```
-/dev scaffold laravel client-api
-```
-Creates a fully configured Laravel project with all required packages installed, integrations configured, and an Obsidian project page ready.
-
-**Build a feature (runs in isolated worktree):**
+**Build a feature (full enterprise workflow):**
 ```
 /dev feature "add user registration with email verification"
 ```
-A new `feature/user-registration` branch is created automatically. Andre reads your project context, checks existing patterns, then implements registration following your conventions. When done, you can review the branch and create a PR.
+Paulo creates a TODO list, enters a worktree (`feature/user-registration`). Lucas researches Laravel auth docs. Gabriel designs the data flow and writes an ADR. Andre implements the backend (migration, model, service, controller). Diana builds the frontend (composable, component, page). Both self-critique their work. Bruno runs a security audit. Rita writes tests and enforces quality gates. Lucas saves patterns to the KB. Paulo writes the final report.
 
-**Fix a bug (runs in isolated worktree):**
+**Plan before building:**
 ```
-/dev debug "login returns 500 error"
+/dev plan "payment system with Stripe"
 ```
-A new `fix/login-500-error` branch is created. Andre diagnoses the root cause, fixes the issue, and writes a regression test.
+Lucas researches Stripe integration options (Context7 + KB). Gabriel designs the architecture and writes an ADR. Paulo presents the plan with estimates. No code is written — run `/dev feature` afterward to implement.
 
-**Get a code review:**
+**Run a security audit:**
 ```
-/dev review
+/dev security-audit
 ```
-Marco reviews your recent changes for security vulnerabilities, performance issues, missing tests, and convention violations.
+Bruno runs OWASP Top 10 against your codebase. Lucas researches any CVEs found. You get a detailed report with severity, location, and fixes.
+
+**Research before deciding:**
+```
+/dev research "payment gateways"
+```
+Lucas fetches docs, evaluates options (Stripe vs Paddle vs Cashier), checks your KB for prior decisions, and delivers a comparison report.
 
 ### Where Results Are Saved
 
-Project documentation goes to `Projects/<name>/Architecture/` and `Projects/<name>/Docs/` in your Obsidian vault.
+- **Architecture decisions:** `Projects/<name>/Architecture/ADR-<NNN>.md`
+- **Security audits:** `Projects/<name>/Architecture/Security-Audit-<date>.md`
+- **Technical docs:** `Projects/<name>/Docs/`
+- **Research:** `Projects/<name>/Docs/Research-<topic>.md`
 
 ---
 

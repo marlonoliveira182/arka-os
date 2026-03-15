@@ -46,7 +46,7 @@ Core system commands for managing ARKA OS itself.
 
 ## Development — `/dev`
 
-Build software. Your development team: Marco (CTO), Andre (Senior Developer), Rita (QA), Carlos (DevOps).
+Build software. Your enterprise development team of 9: Marco (CTO), Paulo (Tech Lead), Gabriel (Architect), Andre (Backend Dev), Diana (Frontend Dev), Bruno (Security), Rita (QA Lead), Carlos (DevOps Lead), Lucas (Analyst).
 
 ### Project Scaffolding
 
@@ -64,20 +64,25 @@ Build software. Your development team: Marco (CTO), Andre (Senior Developer), Ri
 
 ### Development Workflow
 
-Commands that modify code (`feature`, `api`, `debug`, `refactor`, `db`) automatically run inside a **git worktree** — an isolated branch and working directory. This keeps your main branch clean. After the work is done, you can review, create a PR, or merge.
+Commands are classified into 3 tiers by complexity. **Tier 1** (feature, api) runs the full 8-phase enterprise workflow: orchestration → research → architecture → implementation → self-critique → security audit → QA → documentation. **Tier 2** (debug, refactor, db) runs 3-4 focused phases. **Tier 3** commands are single/dual agent.
 
-| Command | What It Does | Worktree? | Example |
-|---------|-------------|:---------:|---------|
-| `/dev feature <description>` | Implement a new feature | Yes | `/dev feature "add user registration"` |
-| `/dev api <spec>` | Generate API endpoints + tests + docs | Yes | `/dev api "payments endpoints"` |
-| `/dev debug <issue>` | Diagnose and fix a bug | Yes | `/dev debug "login returns 500"` |
-| `/dev refactor <target>` | Refactor code with quality gates | Yes | `/dev refactor "controllers"` |
-| `/dev db <description>` | Database schema + migrations | Yes | `/dev db "add user roles table"` |
-| `/dev review` | Get a code review from the CTO | No | `/dev review` |
-| `/dev test` | Run tests and get a quality report | No | `/dev test` |
-| `/dev deploy <environment>` | Deploy to staging or production | No | `/dev deploy staging` |
-| `/dev docs` | Generate technical documentation | No | `/dev docs` |
-| `/dev stack-check` | Check for dependency updates | No | `/dev stack-check` |
+Commands that modify code automatically run inside a **git worktree** — an isolated branch and working directory. This keeps your main branch clean.
+
+| Command | What It Does | Tier | Worktree? | Example |
+|---------|-------------|:----:|:---------:|---------|
+| `/dev feature <description>` | Implement a new feature (8-phase) | 1 | Yes | `/dev feature "add user registration"` |
+| `/dev api <spec>` | Generate API endpoints + tests + docs (8-phase) | 1 | Yes | `/dev api "payments endpoints"` |
+| `/dev plan <description>` | Architecture planning only (no code) | 3 | No | `/dev plan "auth system design"` |
+| `/dev debug <issue>` | Diagnose and fix a bug | 2 | Yes | `/dev debug "login returns 500"` |
+| `/dev refactor <target>` | Refactor code with quality gates | 2 | Yes | `/dev refactor "controllers"` |
+| `/dev db <description>` | Database schema + migrations | 2 | Yes | `/dev db "add user roles table"` |
+| `/dev review` | Code review from CTO + Security | 3 | No | `/dev review` |
+| `/dev test` | Run tests and get a quality report | 3 | No | `/dev test` |
+| `/dev deploy <environment>` | Deploy to staging or production | 3 | No | `/dev deploy staging` |
+| `/dev docs` | Generate technical documentation | 3 | No | `/dev docs` |
+| `/dev stack-check` | Check for dependency updates | 3 | No | `/dev stack-check` |
+| `/dev security-audit` | Standalone security audit (read-only) | 3 | No | `/dev security-audit` |
+| `/dev research <topic>` | Research a lib/framework/integration | 3 | No | `/dev research "payment gateways"` |
 
 **Branch naming:** Features and APIs use `feature/`, bug fixes use `fix/`, refactors use `refactor/`.
 
