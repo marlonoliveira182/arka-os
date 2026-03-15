@@ -26,7 +26,7 @@ Store management, product optimization, and e-commerce growth.
 
 ## Obsidian Output
 
-All e-commerce output goes to the Obsidian vault at `/Users/andreagroferreira/Documents/Personal/`:
+All e-commerce output goes to the Obsidian vault at `{{OBSIDIAN_VAULT}}`:
 
 | Content Type | Vault Path |
 |-------------|-----------|

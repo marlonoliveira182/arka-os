@@ -7,7 +7,7 @@
   "mcpServers": {
     "obsidian": {
       "command": "npx",
-      "args": ["@bitbonsai/mcpvault@latest", "/Users/andreagroferreira/Documents/Personal"],
+      "args": ["@bitbonsai/mcpvault@latest", "{{OBSIDIAN_VAULT}}"],
       "category": "base",
       "description": "Obsidian vault integration — read/write notes, personas, knowledge",
       "required_env": []

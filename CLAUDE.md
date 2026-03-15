@@ -216,7 +216,7 @@ Full spec: `docs/SKILL-STANDARD.md`
 
 ## Obsidian Vault
 
-**Path:** `/Users/andreagroferreira/Documents/Personal/`
+**Path:** `{{OBSIDIAN_VAULT}}` (auto-detected during installation)
 
 ALL department output goes to this Obsidian vault. No local knowledge files.
 

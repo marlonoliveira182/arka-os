@@ -354,6 +354,20 @@ if [ -n "$OBSIDIAN_VAULT" ] && [ -f "$SKILLS_DIR/arka/knowledge/obsidian-config.
     fi
 fi
 
+# Replace vault placeholder in all installed skill files
+if [ -n "$OBSIDIAN_VAULT" ]; then
+    find "$SKILLS_DIR" -name "SKILL.md" -exec sed -i '' "s|{{OBSIDIAN_VAULT}}|$OBSIDIAN_VAULT|g" {} +
+    # Also update knowledge INDEX
+    if [ -f "$SKILLS_DIR/arka/knowledge/INDEX.md" ]; then
+        sed -i '' "s|{{OBSIDIAN_VAULT}}|$OBSIDIAN_VAULT|g" "$SKILLS_DIR/arka/knowledge/INDEX.md"
+    fi
+    # Also update MCP registry (Obsidian vault path in args)
+    if [ -f "$SKILLS_DIR/arka/mcps/registry.json" ]; then
+        sed -i '' "s|{{OBSIDIAN_VAULT}}|$OBSIDIAN_VAULT|g" "$SKILLS_DIR/arka/mcps/registry.json"
+    fi
+    echo -e "  ${GREEN}✓${NC} Vault path applied to all skill files"
+fi
+
 # Set up Obsidian vault directories
 if [ -n "$OBSIDIAN_VAULT" ] && [ -d "$OBSIDIAN_VAULT" ]; then
 

@@ -30,7 +30,7 @@ Content creation, social media management, affiliate marketing, and advertising.
 
 ## Obsidian Output
 
-All marketing output goes to the Obsidian vault at `/Users/andreagroferreira/Documents/Personal/`:
+All marketing output goes to the Obsidian vault at `{{OBSIDIAN_VAULT}}`:
 
 | Content Type | Vault Path |
 |-------------|-----------|

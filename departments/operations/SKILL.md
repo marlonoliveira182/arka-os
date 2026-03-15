@@ -32,7 +32,7 @@ Company operations, automations, and routine process management.
 
 ## Obsidian Output
 
-All operations output goes to the Obsidian vault at `/Users/andreagroferreira/Documents/Personal/`:
+All operations output goes to the Obsidian vault at `{{OBSIDIAN_VAULT}}`:
 
 | Content Type | Vault Path |
 |-------------|-----------|

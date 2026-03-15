@@ -4,7 +4,7 @@
 
 ## Vault Location
 
-`/Users/andreagroferreira/Documents/Personal/`
+`{{OBSIDIAN_VAULT}}`
 
 ## Structure
 

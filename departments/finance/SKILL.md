@@ -28,7 +28,7 @@ Financial planning, investment analysis, and business advisory.
 
 ## Obsidian Output
 
-All finance output goes to the Obsidian vault at `/Users/andreagroferreira/Documents/Personal/`:
+All finance output goes to the Obsidian vault at `{{OBSIDIAN_VAULT}}`:
 
 | Content Type | Vault Path |
 |-------------|-----------|

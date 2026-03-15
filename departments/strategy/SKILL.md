@@ -27,7 +27,7 @@ Strategic planning, market analysis, and idea evaluation.
 
 ## Obsidian Output
 
-All strategy output goes to the Obsidian vault at `/Users/andreagroferreira/Documents/Personal/`:
+All strategy output goes to the Obsidian vault at `{{OBSIDIAN_VAULT}}`:
 
 | Content Type | Vault Path |
 |-------------|-----------|

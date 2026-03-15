@@ -45,7 +45,7 @@ Route commands to the appropriate department:
 
 ## Obsidian Integration
 
-**Vault:** `/Users/andreagroferreira/Documents/Personal/`
+**Vault:** `{{OBSIDIAN_VAULT}}`
 
 ARKA OS uses Obsidian as the single source of truth for all output. Every department writes to the vault using consistent conventions:
 

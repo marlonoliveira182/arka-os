@@ -61,7 +61,7 @@ For `/dev scaffold` and `/dev mcp` commands, read the respective sub-skill SKILL
 
 ## Obsidian Output
 
-All development documentation goes to Obsidian vault at `/Users/andreagroferreira/Documents/Personal/`:
+All development documentation goes to Obsidian vault at `{{OBSIDIAN_VAULT}}`:
 - **Architecture decisions:** `Projects/<name>/Architecture/`
 - **Tech docs:** `Projects/<name>/Docs/`
 - Uses YAML frontmatter, wikilinks `[[]]`, kebab-case tags
