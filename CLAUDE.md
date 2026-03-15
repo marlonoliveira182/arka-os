@@ -69,6 +69,28 @@ ARKA OS installs a global `arka` command:
 - **Git:** Conventional commits, feature branches, PR reviews
 - **Never:** Options API, raw SQL in controllers, business logic in controllers
 
+## Development Worktree (Mandatory)
+
+All `/dev` commands that modify project code MUST run inside a git worktree. This ensures feature branch isolation, prevents conflicts, and keeps the main branch clean.
+
+**Enforced by:** `departments/dev/SKILL.md` — every code-modifying command starts with `EnterWorktree`
+
+**Commands requiring worktree:** `/dev feature`, `/dev api`, `/dev debug`, `/dev refactor`, `/dev db`
+
+**Branch naming:**
+| Type | Prefix | Example |
+|------|--------|---------|
+| Feature | `feature/` | `feature/user-auth` |
+| Bug fix | `fix/` | `fix/login-crash` |
+| Refactor | `refactor/` | `refactor/controllers` |
+
+**Workflow:**
+1. User runs `/dev feature "description"` (or similar)
+2. System calls `EnterWorktree(name: "feature-description")`
+3. All code changes happen inside the worktree (isolated branch)
+4. Work is committed with conventional commit message
+5. User can review, create PR, or merge
+
 ## Laravel Mandatory Packages
 
 Every new Laravel project MUST install these in order:

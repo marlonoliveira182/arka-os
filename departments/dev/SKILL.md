@@ -43,6 +43,57 @@ Full-stack development team powered by specialized personas.
 | `/dev skill remove <name>` | Remove external skill | CTO |
 | `/dev skill create <name>` | Scaffold new skill from template | CTO + Senior Dev |
 
+## Worktree Workflow (Mandatory)
+
+ALL commands that modify project code MUST run inside a git worktree. This is NON-NEGOTIABLE.
+
+### Commands that REQUIRE worktree:
+- `/dev feature` — Feature implementation
+- `/dev api` — API endpoint generation
+- `/dev debug` — Bug investigation and fixing
+- `/dev refactor` — Code refactoring
+- `/dev db` — Database migrations and schema changes
+
+### Commands that do NOT require worktree (read-only or meta):
+- `/dev scaffold` — Creates new projects (no existing code to isolate)
+- `/dev onboard` — Registers existing projects
+- `/dev review` — Code review (read-only)
+- `/dev docs` — Documentation generation
+- `/dev stack-check` — Dependency checks
+- `/dev mcp *` — MCP configuration
+- `/dev ecosystem *` — Ecosystem management
+- `/dev skill *` — Skill management
+- `/dev test` — Can run in main or worktree (depends on context)
+
+### Workflow — Every code-modifying command:
+
+**Step 0: Enter Worktree (BEFORE any code changes)**
+Use the `EnterWorktree` tool with a descriptive name:
+- `/dev feature "user auth"` → `EnterWorktree(name: "feature-user-auth")`
+- `/dev debug "login crash"` → `EnterWorktree(name: "fix-login-crash")`
+- `/dev refactor "controllers"` → `EnterWorktree(name: "refactor-controllers")`
+- `/dev api "payments"` → `EnterWorktree(name: "feature-api-payments")`
+- `/dev db "add user roles"` → `EnterWorktree(name: "feature-user-roles")`
+
+**Step 1-N: Execute the command workflow** (as defined in each command's section below)
+
+**Final Step: Commit and report**
+After all work is done inside the worktree:
+1. Stage and commit changes with conventional commit message
+2. Report what was done and which branch the work is on
+3. Suggest next steps: "Run `/dev review` to review, or create a PR with `gh pr create`"
+
+The user will be prompted to keep or remove the worktree when the session ends.
+
+### Branch naming convention:
+| Command | Branch prefix | Example |
+|---------|--------------|---------|
+| `/dev feature` | `feature/` | `feature/user-auth` |
+| `/dev api` | `feature/` | `feature/api-payments` |
+| `/dev debug` | `fix/` | `fix/login-crash` |
+| `/dev refactor` | `refactor/` | `refactor/controllers` |
+| `/dev db` | `feature/` | `feature/user-roles-migration` |
+
 ## Sub-Skills
 
 | Skill | Path | Purpose |
@@ -77,6 +128,10 @@ All development documentation goes to Obsidian vault at `{{OBSIDIAN_VAULT}}`:
 
 ## Workflow: /dev feature
 
+### Step 0: Enter Worktree
+Use `EnterWorktree` tool with name derived from the feature description (e.g., `feature-user-auth`).
+This creates an isolated branch and working directory for this work.
+
 1. **CTO** reads project CLAUDE.md/PROJECT.md → decides architecture approach
 2. **Senior Dev** implements using project conventions:
    - Laravel: Migration → Model → Service → Controller → FormRequest → Resource → Routes
@@ -84,6 +139,38 @@ All development documentation goes to Obsidian vault at `{{OBSIDIAN_VAULT}}`:
 3. **QA** generates tests (Feature tests for API, component tests for frontend)
 4. **Senior Dev** runs tests and fixes failures
 5. All output follows the project's established patterns
+
+## Workflow: /dev api
+
+### Step 0: Enter Worktree
+Use `EnterWorktree` tool with name derived from the API spec (e.g., `feature-api-payments`).
+This creates an isolated branch and working directory for this work.
+
+Then: **Senior Dev** generates endpoints, controllers, form requests, resources, routes, and tests. **QA** validates test coverage.
+
+## Workflow: /dev debug
+
+### Step 0: Enter Worktree
+Use `EnterWorktree` tool with name derived from the issue description (e.g., `fix-login-crash`).
+This creates an isolated branch and working directory for this work.
+
+Then: **Senior Dev** diagnoses the issue, identifies root cause, implements fix, and writes regression test.
+
+## Workflow: /dev refactor
+
+### Step 0: Enter Worktree
+Use `EnterWorktree` tool with name derived from the refactor target (e.g., `refactor-controllers`).
+This creates an isolated branch and working directory for this work.
+
+Then: **CTO** defines quality gates. **Senior Dev** refactors while ensuring all tests pass before and after.
+
+## Workflow: /dev db
+
+### Step 0: Enter Worktree
+Use `EnterWorktree` tool with name derived from the description (e.g., `feature-user-roles-migration`).
+This creates an isolated branch and working directory for this work.
+
+Then: **Senior Dev** creates migration, updates models, and adjusts related services/controllers.
 
 ## Context Loading
 
