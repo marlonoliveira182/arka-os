@@ -1,0 +1,438 @@
+# ARKA OS — Departments Guide
+
+ARKA OS is organized into 7 departments, each with specialized AI team members. This guide explains what each department does, who's on the team, and what you can accomplish.
+
+---
+
+## System — `/arka`
+
+### What This Department Does
+
+The System department is the control center of ARKA OS. It gives you an overview of everything happening across your business — projects, tasks, meetings, and system health. Think of it as your daily briefing.
+
+### What You Can Do
+
+| Command | What Happens |
+|---------|-------------|
+| `/arka help` | See every command across all departments |
+| `/arka standup` | Get a daily summary of what's going on — active projects, pending tasks, upcoming meetings, unread emails, and tech updates |
+| `/arka status` | Check system health — your version, active departments, team members, integrations, and installed skills |
+| `/arka monitor` | Scan your tech stack for updates and get recommendations |
+| `/arka onboard <project>` | Initialize a new project with context files and an Obsidian page |
+
+### Real-World Examples
+
+**Morning routine:**
+```
+/arka standup
+```
+Start your day with a full picture: what projects need attention, what tasks are due, and what meetings are coming up.
+
+**After installing a new skill:**
+```
+/arka status
+```
+Verify everything is working and see your updated setup.
+
+### Where Results Are Saved
+
+System reports are saved to `WizardingCode/Operations/` in your Obsidian vault.
+
+---
+
+## Development — `/dev`
+
+### What This Department Does
+
+The Development department handles everything related to building software — creating new projects, writing features, reviewing code, running tests, and deploying. It follows strict coding standards and always reads your project context before making changes.
+
+### The Team
+
+**Marco — CTO**
+15 years of experience building SaaS products and APIs. Marco makes architecture decisions, reviews code, and prioritizes security above everything else. He's opinionated but backs it up with evidence. His priority order: security, scalability, maintainability, then speed.
+
+**Andre — Senior Developer**
+10 years building web applications. Andre is the builder — he reads existing code patterns before writing anything new, handles edge cases, and follows your project's conventions exactly. He always reads 2-3 similar files before creating a new one.
+
+**Rita — QA Engineer**
+Rita is the one who breaks things — on purpose. She tests the happy path, the sad path, and every edge case she can find. Functionality, validation, authentication, error handling — nothing gets past her.
+
+**Carlos — DevOps Engineer**
+Carlos automates everything. Docker, CI/CD pipelines, cloud deployments, SSL certificates, monitoring — he wants zero manual steps in your deployment process. If it can be automated, it should be.
+
+### What You Can Do
+
+| Command | What Happens |
+|---------|-------------|
+| `/dev scaffold <type> <name>` | Create a complete project from a starter template with dependencies installed and integrations configured |
+| `/dev feature <description>` | Implement a new feature following your project's patterns and conventions |
+| `/dev review` | Get Marco to review your code for security issues, performance problems, and convention violations |
+| `/dev test` | Run your test suite and get a report from Rita |
+| `/dev deploy <environment>` | Deploy to staging or production |
+| `/dev db migrate` | Run database migrations |
+| `/dev mcp apply <profile>` | Configure integrations for a project |
+| `/dev skill install <url>` | Install a community skill |
+
+### Real-World Examples
+
+**Start a new Laravel project:**
+```
+/dev scaffold laravel client-api
+```
+Creates a fully configured Laravel project with all required packages installed, integrations configured, and an Obsidian project page ready.
+
+**Build a feature:**
+```
+/dev feature "add user registration with email verification"
+```
+Andre reads your project context, checks existing patterns, then implements registration following your conventions.
+
+**Get a code review:**
+```
+/dev review
+```
+Marco reviews your recent changes for security vulnerabilities, performance issues, missing tests, and convention violations.
+
+### Where Results Are Saved
+
+Project documentation goes to `Projects/<name>/Architecture/` and `Projects/<name>/Docs/` in your Obsidian vault.
+
+---
+
+## Marketing — `/mkt`
+
+### What This Department Does
+
+The Marketing department creates content for every platform — social media, email, blogs, ads, and landing pages. It adapts to each platform's style and can write in the voice of any persona in your knowledge base.
+
+### The Team
+
+**Luna — Content Creator**
+Luna is a trend-aware content machine. She knows that Instagram is visual-first, LinkedIn is professional, TikTok needs to be raw and authentic, and X/Twitter demands brevity. She uses proven content frameworks — Hook-Story-Offer, Problem-Agitate-Solve, Before-After-Bridge — and adapts to whatever voice your brand needs.
+
+### What You Can Do
+
+| Command | What Happens |
+|---------|-------------|
+| `/mkt social <platform> <topic>` | Get platform-specific social media posts with captions, hashtags, and formatting |
+| `/mkt calendar <period>` | Get a full content calendar with themes, post ideas, and scheduling |
+| `/mkt reels <topic>` | Get scripts for Reels, TikTok, or YouTube Shorts with hooks and visual cues |
+| `/mkt email <type> <topic>` | Get email sequences — welcome series, nurture, sales, re-engagement |
+| `/mkt landing <product>` | Get landing page copy with headlines, benefits, social proof sections, and CTAs |
+| `/mkt ads <platform> <product>` | Get ad copy optimized for Facebook, Google, Instagram, or any platform |
+| `/mkt affiliate <analysis>` | Get an analysis of affiliate marketing opportunities |
+| `/mkt blog <topic>` | Get a full blog article, SEO-optimized and ready to publish |
+| `/mkt copy-analysis <url>` | Get a teardown of existing copy with specific improvement suggestions |
+| `/mkt brand-guide` | Get comprehensive brand guidelines |
+| `/mkt audit` | Get a complete marketing audit across all channels |
+
+### Real-World Examples
+
+**Create Instagram content for a product launch:**
+```
+/mkt social instagram "We're launching a new project management tool for freelancers"
+```
+Luna creates multiple post variations with captions, hashtags, visual direction, and posting times.
+
+**Plan a month of content:**
+```
+/mkt calendar "April 2026"
+```
+Get a day-by-day calendar with themes, content types, platform assignments, and topic ideas.
+
+**Write a sales email sequence:**
+```
+/mkt email sales "SaaS free trial ending"
+```
+Get a multi-email sequence designed to convert free trial users to paying customers.
+
+### Where Results Are Saved
+
+All marketing content goes to `WizardingCode/Marketing/` in your Obsidian vault.
+
+---
+
+## E-commerce — `/ecom`
+
+### What This Department Does
+
+The E-commerce department helps you run and grow online stores. It can audit your store from every angle, optimize product listings, analyze pricing, study competitors, and plan product launches.
+
+### The Team
+
+**Ricardo — E-commerce Manager**
+8 years scaling online stores to 7 figures. Ricardo is conversion-obsessed and data-driven. He analyzes stores by following the customer journey: traffic source, funnel steps, product pages, pricing, email flows, SEO, and customer lifetime value. Every recommendation comes with expected impact.
+
+### What You Can Do
+
+| Command | What Happens |
+|---------|-------------|
+| `/ecom audit <store-url>` | Five AI analysts audit your store simultaneously — UX, SEO, performance, content, and conversion — then deliver a combined report |
+| `/ecom product <listing>` | Optimize a product listing — title, description, images, keywords, and SEO |
+| `/ecom pricing <product>` | Analyze your pricing versus competitors and recommend a strategy |
+| `/ecom competitors <niche>` | Deep competitive analysis — who's winning, why, and where their gaps are |
+| `/ecom launch <product>` | Complete launch plan with timeline, marketing, email sequences, and ad strategy |
+| `/ecom ads <product>` | Ad campaigns designed for e-commerce conversion |
+| `/ecom email-flows` | Automated email sequences — welcome, abandoned cart, post-purchase, win-back |
+| `/ecom report` | Performance report with metrics, trends, and action items |
+
+### Real-World Examples
+
+**Audit your store:**
+```
+/ecom audit "https://myshopifystore.com"
+```
+Five specialists analyze your store at once. You get a detailed report covering UX issues, SEO gaps, slow pages, content problems, and conversion killers — with prioritized fixes.
+
+**Optimize a product listing:**
+```
+/ecom product "Premium Wireless Headphones - Model X Pro"
+```
+Ricardo rewrites your title, description, and bullet points to maximize conversions and search visibility.
+
+**Plan a product launch:**
+```
+/ecom launch "summer sunglasses collection"
+```
+Get a complete launch plan: pre-launch buzz, launch day strategy, email sequences, social media plan, ad campaigns, and post-launch follow-up.
+
+### Where Results Are Saved
+
+E-commerce reports and analyses go to `WizardingCode/Ecommerce/` in your Obsidian vault.
+
+---
+
+## Finance — `/fin`
+
+### What This Department Does
+
+The Finance department handles everything money-related — financial reports, budgets, forecasts, investment analysis, negotiation prep, and investor pitches. It provides analysis and preparation, not financial advice.
+
+### The Team
+
+**Helena — CFO**
+12 years of experience taking startups from seed to scale. Helena is conservative with money, obsessive about data, and speaks in clear numbers — no vague projections. She covers three roles: financial planning (budgets, cash flow, P&L), investment analysis (opportunity evaluation, portfolio review), and negotiation coaching (strategy, BATNA analysis, talking points).
+
+### What You Can Do
+
+| Command | What Happens |
+|---------|-------------|
+| `/fin report <type>` | Financial reports — monthly, quarterly, or annual — with metrics, trends, and highlights |
+| `/fin forecast <period>` | Revenue and expense projections with scenarios (optimistic, realistic, conservative) |
+| `/fin budget <project>` | Detailed budget breakdown for a project or the whole company |
+| `/fin negotiate <context>` | Negotiation preparation — strategy, best alternative, key arguments, and red lines |
+| `/fin pitch <context>` | Investor pitch preparation with financial models and key metrics |
+| `/fin analysis <topic>` | Financial analysis on any business decision |
+| `/fin investment <opportunity>` | Evaluate an investment opportunity with risk assessment |
+| `/fin portfolio` | Portfolio review with allocation analysis and recommendations |
+| `/fin invoice <client>` | Generate a professional invoice |
+
+### Real-World Examples
+
+**Prepare for a salary negotiation:**
+```
+/fin negotiate "salary review - I want a 20% raise"
+```
+Helena prepares your BATNA (best alternative), supporting arguments, potential objections with counter-arguments, and walk-away point.
+
+**Evaluate a business decision:**
+```
+/fin analysis "should we move from AWS to Google Cloud?"
+```
+Get a full cost comparison, migration costs, risk analysis, and recommendation.
+
+**Prepare an investor pitch:**
+```
+/fin pitch "raising 500K for our SaaS platform"
+```
+Helena builds your financial model, key metrics, use of funds, and the financial slides for your pitch deck.
+
+### Where Results Are Saved
+
+Financial reports and analyses go to `WizardingCode/Finance/` in your Obsidian vault.
+
+---
+
+## Operations — `/ops`
+
+### What This Department Does
+
+The Operations department runs the day-to-day business — task management, email communication, calendar, meetings, client onboarding, process automation, and multi-platform messaging. It connects to ClickUp, Gmail, Google Calendar, and messaging platforms.
+
+### The Team
+
+**Sofia — COO**
+10 years of operational excellence. Sofia is process-obsessed and calm under pressure. Her mantra: checklists over memory, templates over blanks, async over sync. She documents everything, automates what she can, and creates systems that run themselves.
+
+### What You Can Do
+
+| Command | What Happens |
+|---------|-------------|
+| `/ops tasks` | View and manage your tasks in ClickUp |
+| `/ops email <type>` | Draft professional emails — follow-ups, proposals, introductions, apologies |
+| `/ops calendar` | View upcoming events and meetings |
+| `/ops meeting <topic>` | Prepare meeting agenda with talking points and background materials |
+| `/ops standup` | Run a daily standup — what happened yesterday, what's planned today, any blockers |
+| `/ops invoice <client>` | Generate and track client invoices |
+| `/ops automate <process>` | Design process automations with step-by-step workflows |
+| `/ops report` | Generate operational reports |
+| `/ops onboard <client>` | Create a client onboarding checklist and workflow |
+| `/ops channel add <platform> <id>` | Connect a messaging channel (Slack, Discord, WhatsApp, Teams) |
+| `/ops channel list` | See all connected messaging channels |
+| `/ops channel remove <platform>` | Disconnect a messaging channel |
+| `/ops notify <message>` | Send a message to your default channel |
+| `/ops broadcast <message>` | Send a message to all connected channels |
+
+### Real-World Examples
+
+**Prepare for a client meeting:**
+```
+/ops meeting "quarterly review with Acme Corp"
+```
+Sofia creates an agenda, prepares talking points, pulls relevant project data, and suggests follow-up actions.
+
+**Set up messaging:**
+```
+/ops channel add slack C0123456789
+/ops channel add discord 987654321
+```
+Now you can send updates to both platforms:
+```
+/ops broadcast "Version 2.0 is live!"
+```
+
+**Create a client onboarding process:**
+```
+/ops onboard "New Client Ltd"
+```
+Get a complete onboarding checklist: welcome email, kickoff meeting agenda, access setup, project setup, and milestone planning.
+
+### Where Results Are Saved
+
+Operational documents go to `WizardingCode/Operations/` in your Obsidian vault.
+
+---
+
+## Strategy — `/strat`
+
+### What This Department Does
+
+The Strategy department helps you think bigger — market analysis, brainstorming, competitive intelligence, and strategic planning. Every analysis uses proven business frameworks and ends with concrete action items.
+
+### The Team
+
+**Tomas — Chief Strategist**
+Ex-management consultant who thinks in frameworks — Porter's Five Forces, Blue Ocean Strategy, Jobs-to-be-Done. Tomas blends data with intuition, plays devil's advocate, and spots connections others miss. During brainstorms, he argues from 5 different perspectives (visionary, pragmatist, skeptic, customer, analyst) and then synthesizes everything into a clear recommendation.
+
+### What You Can Do
+
+| Command | What Happens |
+|---------|-------------|
+| `/strat brainstorm <topic>` | Structured brainstorm with 5 simultaneous perspectives, then a synthesis with a clear recommendation |
+| `/strat market <industry>` | Full market analysis — total addressable market, serviceable market, competitive landscape, entry barriers |
+| `/strat prospect <criteria>` | Find and profile potential clients or partners |
+| `/strat compete <competitor>` | Deep competitive intelligence — strengths, weaknesses, strategy, and where to attack |
+| `/strat swot <business>` | Classic SWOT analysis with prioritized actions for each quadrant |
+| `/strat evaluate <idea>` | Score a business idea on market size, feasibility, competition, and timing |
+| `/strat pivot <context>` | Analyze strategic pivot options with risk and reward for each path |
+| `/strat roadmap <product>` | Create a product or business roadmap with milestones and dependencies |
+| `/strat trends <industry>` | Analyze emerging trends and predict where things are heading |
+
+### Real-World Examples
+
+**Brainstorm a new direction:**
+```
+/strat brainstorm "should we add a marketplace to our SaaS?"
+```
+Five perspectives argue simultaneously:
+- **Visionary:** "The platform play is where the money is..."
+- **Pragmatist:** "We need 1,000 active users before a marketplace makes sense..."
+- **Devil's Advocate:** "Every SaaS that became a marketplace lost focus..."
+- **Customer Voice:** "Users want integrations, not a marketplace..."
+- **Analyst:** "The data shows marketplace SaaS has 3x higher retention..."
+
+Then Tomas synthesizes it all into a clear recommendation.
+
+**Analyze a market:**
+```
+/strat market "AI tools for real estate agents in Europe"
+```
+Get market sizing (TAM/SAM/SOM), key players, entry barriers, customer segments, and a go-to-market recommendation.
+
+**Evaluate a competitor:**
+```
+/strat compete "Notion"
+```
+Get a full profile — their strengths, weaknesses, pricing strategy, target market, recent moves, and specific opportunities where you can differentiate.
+
+### Where Results Are Saved
+
+Strategy documents go to `WizardingCode/Strategy/` in your Obsidian vault.
+
+---
+
+## Knowledge Base — `/kb`
+
+### What This Department Does
+
+The Knowledge Base department turns content into usable expertise. Feed it a YouTube video, article, or any text, and it extracts strategies, frameworks, voice patterns, philosophy, and key quotes. Over time, you build a library of expert personas you can reference and generate content from.
+
+### The Team
+
+**Clara — Knowledge Curator**
+Former research librarian turned AI knowledge architect. Clara is analytical, systematic, and quality-obsessed. She doesn't just summarize — she decomposes content into actionable frameworks, identifies voice patterns, and builds connections between different sources. Her rule: everything must be attributed, nothing is deleted (only merged), and contradictions between sources are valuable.
+
+### What You Can Do
+
+| Command | What Happens |
+|---------|-------------|
+| `/kb learn <source>` | Learn from a YouTube video, article, or text — extracts expertise and builds a persona profile |
+| `/kb search <query>` | Search across your entire knowledge base |
+| `/kb persona list` | See all expert personas you've built |
+| `/kb persona <name>` | View a persona's full profile — their strategies, frameworks, voice, and quotes |
+| `/kb topic <name>` | View or create a topic page that links related knowledge |
+| `/kb generate <persona> <topic>` | Generate new content written in a persona's authentic voice and style |
+
+### Real-World Examples
+
+**Learn from a YouTube video:**
+```
+/kb learn "https://youtube.com/watch?v=abc123"
+```
+Clara downloads the video, transcribes it, and runs 5 specialized analyses at the same time — extracting strategies, frameworks, voice patterns, philosophy, and key quotes. The result is a rich persona profile in your Obsidian vault.
+
+**Generate content in a persona's style:**
+```
+/kb generate "Alex Hormozi" "pricing strategies for digital products"
+```
+Clara writes about pricing in Alex Hormozi's authentic voice, using his frameworks, examples, and communication style.
+
+**Build expertise over time:**
+```
+/kb learn "https://youtube.com/watch?v=video1"
+/kb learn "https://youtube.com/watch?v=video2"
+/kb learn "https://youtube.com/watch?v=video3"
+```
+Each time you learn from the same person, their persona profile gets richer and more nuanced. The knowledge compounds.
+
+### Where Results Are Saved
+
+- Persona profiles → `Personas/` in your Obsidian vault
+- Video sources → `Sources/Videos/`
+- Article sources → `Sources/Articles/`
+- Topic pages → `Topics/`
+- Frameworks → `🧠 Knowledge Base/Frameworks/`
+- Raw transcripts → `🧠 Knowledge Base/Raw Transcripts/`
+
+---
+
+## Working Across Departments
+
+Departments aren't isolated — they share context and can reference each other's work. Some examples:
+
+- **Marketing + Knowledge:** Luna can write content in any persona's voice after Clara has analyzed their content
+- **Strategy + Finance:** Tomas can pull Helena's financial data into strategic analyses
+- **Development + Operations:** Carlos can automate deployment notifications through Sofia's messaging channels
+- **E-commerce + Marketing:** Ricardo and Luna can collaborate on product launch content
+
+Everything flows through your Obsidian vault, so context is always available across departments.
