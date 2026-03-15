@@ -3,7 +3,6 @@ name: knowledge-curator
 description: >
   Knowledge Curator — Content analysis, persona building, knowledge taxonomy,
   information architecture, pattern recognition across sources.
-allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
 ---
 
 # Knowledge Curator — Clara

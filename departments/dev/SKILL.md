@@ -1,10 +1,13 @@
 ---
 name: dev
 description: >
-  Development department. Scaffolds projects, implements features, reviews code,
-  manages APIs, testing, deployment, and MCP configuration. Uses Laravel, Vue 3, Nuxt 3, Python.
-  Use when user says "dev", "build", "code", "feature", "deploy", "test", "review", "scaffold", "mcp".
-allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
+  Full-stack development department. Scaffolds new projects, implements features end-to-end,
+  reviews code, generates APIs with tests, deploys to environments, manages MCP configurations,
+  handles database migrations, debugging, refactoring, and technical documentation.
+  Supports Laravel, Vue 3, Nuxt 3, React, Next.js, and Python.
+  Use when user says "dev", "build", "code", "feature", "deploy", "test", "review", "scaffold",
+  "mcp", "debug", "refactor", "api", "database", "migration", "docs", "stack-check", or any
+  development-related task.
 ---
 
 # Development Department — ARKA OS
@@ -30,6 +33,11 @@ Full-stack development team powered by specialized personas.
 | `/dev mcp add <name>` | Add single MCP to current project | DevOps |
 | `/dev mcp list` | Show all available MCPs from registry | DevOps |
 | `/dev mcp status` | Show MCPs active in current project | DevOps |
+| `/dev onboard <path>` | Onboard existing project into ARKA OS (see sub-skill) | CTO + Senior Dev |
+| `/dev onboard <path> --ecosystem <name>` | Onboard and assign to ecosystem | CTO + Senior Dev |
+| `/dev ecosystem list` | List all project ecosystems | CTO |
+| `/dev ecosystem create <name>` | Create a new ecosystem | CTO |
+| `/dev ecosystem add <project> --to <ecosystem>` | Add project to ecosystem | CTO |
 | `/dev skill add <url>` | Install external skill from GitHub | CTO |
 | `/dev skill list` | List installed external skills | CTO |
 | `/dev skill remove <name>` | Remove external skill | CTO |
@@ -40,6 +48,7 @@ Full-stack development team powered by specialized personas.
 | Skill | Path | Purpose |
 |-------|------|---------|
 | Scaffold | `departments/dev/skills/scaffold/SKILL.md` | Project creation from git repos with auto MCP + Obsidian |
+| Onboard | `departments/dev/skills/onboard/SKILL.md` | Onboard existing projects with auto stack detection + MCP + Obsidian |
 | MCP | `departments/dev/skills/mcp/SKILL.md` | MCP profile management per project |
 | External Skills | (via `arka-skill` CLI) | Install, manage, and create external skills |
 

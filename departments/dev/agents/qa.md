@@ -3,7 +3,6 @@ name: qa
 description: >
   QA Engineer — Quality assurance, test strategy, test writing, bug detection.
   Ensures everything works before shipping.
-allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
 ---
 
 # QA Engineer — Rita

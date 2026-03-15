@@ -1,10 +1,15 @@
 ---
 name: kb
 description: >
-  Dynamic knowledge base system powered by Obsidian. Downloads YouTube videos,
-  transcribes with Whisper, analyzes content, creates/updates personas in the Obsidian vault.
-  Use when user says "kb", "learn", "persona", "knowledge", or wants to learn from content.
-allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
+  Dynamic knowledge base powered by Obsidian. Async background processing: queues YouTube
+  downloads, transcribes with Whisper (local or API), and pauses for interactive analysis.
+  Runs 5 parallel analysis agents (Frameworks, Strategy, Voice & Style, Principles, Topics)
+  to build expert personas. Learns from articles and URLs. Creates searchable persona profiles,
+  topic cross-references, and source catalogs. Generates content in any learned persona's voice
+  and style. All output organized in Obsidian vault with MOC pages.
+  Use when user says "kb", "learn", "persona", "knowledge", "youtube", "transcribe", "article",
+  "research", "analyze", "source", "topic", "search knowledge", "write as", "queue", "process",
+  "capabilities", or wants to learn from any content source or use a persona's expertise.
 ---
 
 # Knowledge Base — ARKA OS Department
@@ -12,6 +17,8 @@ allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
 Dynamic knowledge acquisition and management system. Learn from YouTube videos, articles, books, and any content source. Build expert personas and a searchable knowledge base.
 
 **ALL output goes to the Obsidian vault.**
+
+**Background processing:** Downloads and transcriptions run as background jobs. Queue 100 URLs and keep working. Process results interactively when ready.
 
 ## Obsidian Configuration
 
@@ -24,8 +31,14 @@ Dynamic knowledge acquisition and management system. Learn from YouTube videos, 
 
 | Command | Description |
 |---------|-------------|
-| `/kb learn <youtube-url> --persona "Name"` | Download, transcribe, analyze, catalog to Obsidian |
-| `/kb learn-text <file/url> --persona "Name"` | Learn from text/article content |
+| `/kb learn <url> [url2 ...] [--persona "Name"]` | Queue download + transcription (async, non-blocking) |
+| `/kb learn-text <file/url> --persona "Name"` | Learn from text/article content (synchronous) |
+| `/kb queue` | Show all queued/running/ready jobs |
+| `/kb status [job-id]` | Detailed status of a specific job |
+| `/kb process <job-id>` | Analyze a ready transcription (interactive choices) |
+| `/kb process --all` | Process all ready jobs |
+| `/kb capabilities` | Show available tools and API keys |
+| `/kb cleanup [--older-than 90d]` | Remove old media files |
 | `/kb persona <name>` | View/manage a persona profile |
 | `/kb personas` | List all personas and their stats |
 | `/kb search <query>` | Search knowledge base by topic |
@@ -33,24 +46,114 @@ Dynamic knowledge acquisition and management system. Learn from YouTube videos, 
 | `/kb topics` | List all knowledge topics |
 | `/kb update <persona> <youtube-url>` | Add more content to existing persona |
 
-## /kb learn <youtube-url> --persona "Name"
+## Scripts Location
 
-### Step 1: Download Audio
+All KB scripts are in the `scripts/` subdirectory of this skill:
+- `scripts/kb-check-capabilities.sh` — System capability probe
+- `scripts/kb-queue.sh` — Queue dispatcher
+- `scripts/kb-worker.sh` — Background worker
+- `scripts/kb-status.sh` — Status checker
+- `scripts/kb-cleanup.sh` — Media cleanup
+
+The scripts directory path can be resolved relative to this SKILL.md file's installed location. When installed, scripts are at `~/.claude/skills/arka-knowledge/scripts/`.
+
+## /kb capabilities
+
+Check what tools and API keys are available for KB processing.
+
+**Steps:**
+1. Run `bash <scripts-dir>/kb-check-capabilities.sh`
+2. Read `~/.arka-os/capabilities.json`
+3. Display the results to the user in a formatted table
+
+Shows: binary availability (whisper, yt-dlp, ffmpeg, jq, python3), API keys (OpenAI, Gemini, OpenRouter), and the selected transcription method.
+
+## /kb learn <url> [url2 ...] [--persona "Name"]
+
+**This command is NON-BLOCKING.** It queues jobs and returns immediately.
+
+### Step 1: Check Capabilities
 ```bash
-yt-dlp -x --audio-format wav --audio-quality 0 -o "/tmp/arka-kb-%(id)s.%(ext)s" "<url>"
+bash <scripts-dir>/kb-check-capabilities.sh
+```
+Read `~/.arka-os/capabilities.json`. If `yt-dlp` is not available, tell the user to install it and stop. If no transcription method is available, warn the user (download-only mode).
+
+### Step 2: Queue Each URL
+For each URL provided, run:
+```bash
+bash <scripts-dir>/kb-queue.sh "<url>" --persona "<Name>"
+```
+This returns a job ID (8 chars) immediately. The download + transcription runs in the background.
+
+### Step 3: Display Summary
+Show the user what was queued:
+```
+═══ ARKA KB — Jobs Queued ═══
+  Job a1b2c3d4 → <url1>
+  Job e5f6g7h8 → <url2>
+  ...
+Transcription: <method>
+Media: ~/.arka-os/media/<date>/
+
+Run /kb queue to check progress.
+Run /kb process <job-id> when jobs are ready.
+═════════════════════════════
 ```
 
-### Step 2: Transcribe with Whisper
+**IMPORTANT:** Do NOT wait for downloads to complete. Return to the user immediately after queuing.
+
+## /kb queue
+
+Show all jobs and their current status.
+
+**Steps:**
+1. Run `bash <scripts-dir>/kb-status.sh`
+2. Or read `~/.arka-os/kb-jobs.json` directly and format as a table
+3. Show: job ID, status, title, transcription method
+4. Status colors: queued (yellow), downloading/transcribing (blue), ready (green), completed (green), failed (red)
+
+## /kb status [job-id]
+
+Show detailed status of a specific job.
+
+**Steps:**
+1. Run `bash <scripts-dir>/kb-status.sh <job-id>`
+2. Or read the job from `~/.arka-os/kb-jobs.json` and display all fields
+3. If `--json` flag: output raw JSON
+
+## /kb process <job-id>
+
+Analyze a ready transcription. This is the INTERACTIVE step that requires Claude Code's LLM.
+
+### Step 1: Validate Job
+Read `~/.arka-os/kb-jobs.json`. Find job by ID. Verify status is `ready`. If not ready, show current status and suggest waiting.
+
+### Step 2: Read Transcript
+Read `<job-output-dir>/audio.txt` for the transcription.
+Read `<job-output-dir>/metadata.json` for video title, duration, etc.
+
+### Step 3: Ask User What To Do
+
+Present these choices using AskUserQuestion:
+
+1. **Full analysis** — Run all 5 agents, create/update persona + source + topics + MOC pages
+2. **Create/update persona only** — Just the persona profile
+3. **Extract frameworks only** — Identify and catalog frameworks/methodologies
+4. **Save transcript to Obsidian only** — Just save the raw transcript as a Source page
+5. **Custom analysis** — Ask user what specific analysis they want
+
+### Step 4: Update Job Status
+Update `~/.arka-os/kb-jobs.json` — set status to `analyzing`.
+Use flock for safe concurrent writes:
 ```bash
-whisper "/tmp/arka-kb-<id>.wav" --model medium --language auto --output_format txt --output_dir /tmp/
+(flock -x 200; jq --arg id "<job-id>" '(.jobs[] | select(.id == $id)).status = "analyzing"' ~/.arka-os/kb-jobs.json > /tmp/kb-tmp.$$.json && mv /tmp/kb-tmp.$$.json ~/.arka-os/kb-jobs.json) 200>~/.arka-os/kb-jobs.lock
 ```
 
-### Step 3: Read Transcription
-Read the generated .txt file from /tmp/
+### Step 5: Execute Analysis
 
-### Step 4: Analyze Content (5 parallel agents)
+**If "Full analysis" chosen — run 5 parallel agents (same as before):**
 
-Launch these analysis agents simultaneously:
+Launch these analysis agents simultaneously using the Task tool:
 
 **Agent 1: Frameworks Extractor**
 - What frameworks, models, or methodologies does this person teach?
@@ -78,11 +181,13 @@ Launch these analysis agents simultaneously:
 - How does it relate to existing topics in the knowledge base?
 - What keywords and categories apply?
 
-### Step 5: Create/Update Persona in Obsidian
+### Step 6: Write to Obsidian
+
+**Create/Update Persona** — same format as before:
 
 Check if `Personas/<Name>.md` exists in the Obsidian vault.
 
-**If new persona — create using this EXACT format** (matching existing Sabri Suby format):
+**If new persona — create using this EXACT format:**
 
 **File:** `Personas/<Name>.md`
 ```markdown
@@ -143,7 +248,7 @@ tags:
 5. Update `date_updated` in frontmatter
 6. Note contradictions if the person changed their position
 
-### Step 6: Create Source File in Obsidian
+**Create Source File:**
 
 **File:** `Sources/Videos/<YYYY-MM-DD> <Video Title>.md`
 ```markdown
@@ -190,11 +295,9 @@ tags:
 *Part of the [[Sources MOC]]*
 ```
 
-### Step 7: Catalog by Topic in Obsidian
+**Catalog by Topic:**
 
-For each topic identified:
-
-**File:** `Topics/<Topic Name>.md` (create or update)
+For each topic identified, create or update `Topics/<Topic Name>.md`:
 ```markdown
 ---
 type: topic
@@ -218,22 +321,19 @@ tags:
 *Part of the [[Topics MOC]]*
 ```
 
-### Step 8: Update MOC Pages
+**Update MOC Pages:**
+- Update `Personas MOC.md` to include the new/updated persona link
+- Update `Sources MOC.md` to include the new source link
+- Update `Topics MOC.md` with any new topics
+- Create these MOC files if they don't exist yet
 
-Update `Personas MOC.md` to include the new/updated persona link.
-Update `Sources MOC.md` to include the new source link.
-Update `Topics MOC.md` with any new topics.
+### Step 7: Update Job Status
+Update `~/.arka-os/kb-jobs.json` — set status to `completed`.
 
-Create these MOC files if they don't exist yet.
-
-### Step 9: Cleanup
-
-Remove temporary audio and transcription files from /tmp/.
-
-### Step 10: Report
-
+### Step 8: Report
 ```
-═══ ARKA KB — Learning Complete ═══
+═══ ARKA KB — Processing Complete ═══
+Job:        <job-id>
 Persona:    <Name> (new/updated)
 Source:     "<Video Title>" (YouTube)
 Duration:   <duration>
@@ -242,15 +342,35 @@ Source:     Sources/Videos/<date> <title>.md
 New frameworks found: <count>
 New strategies found: <count>
 Topics tagged: <list>
-═══════════════════════════════════
+Media:      <output-dir>
+══════════════════════════════════════
 ```
+
+## /kb process --all
+
+Process all jobs with status `ready`:
+1. Read `~/.arka-os/kb-jobs.json`
+2. Filter jobs where status is `ready`
+3. For each ready job, run the `/kb process <job-id>` workflow
+4. Ask the user once what analysis type to use for all jobs (or ask per-job)
+
+## /kb cleanup [--older-than 90d]
+
+Remove old media files for completed jobs.
+
+**Steps:**
+1. Run `bash <scripts-dir>/kb-cleanup.sh --older-than <days>`
+2. Add `--dry-run` first to show what would be removed
+3. Ask user to confirm before actual deletion
+4. Report space freed
 
 ## /kb learn-text <file/url> --persona "Name"
 
-Same workflow as `/kb learn` but skip Steps 1-2 (download/transcribe).
+Same workflow as `/kb process` full analysis but skip download/transcribe.
 - If URL: use WebFetch to get content
 - If file: read directly
 - Source goes to `Sources/Articles/` instead of `Sources/Videos/`
+- This is synchronous (no background processing needed — text is already available)
 
 ## /kb write --persona "Name" --type <type>
 
@@ -283,6 +403,34 @@ Show: name, expertise, number of sources, last updated date.
 
 List all topics by reading files in `Topics/` directory of the vault.
 Show: topic name, related personas, last updated date.
+
+## Job Status Flow
+
+```
+queued → downloading → transcribing → ready → analyzing → completed
+              ↓              ↓
+           failed          failed
+```
+
+The `ready` → `analyzing` transition happens when user runs `/kb process <job-id>`. The analysis requires Claude Code's LLM (5 parallel agents), which cannot run in a background bash script.
+
+## Media Storage
+
+```
+~/.arka-os/
+├── media/                          # Permanent, organized media storage
+│   ├── 2026-03-15/                 # Date-based grouping
+│   │   ├── a1b2c3d4/              # Job ID directory
+│   │   │   ├── metadata.json      # yt-dlp output (title, duration)
+│   │   │   ├── audio.wav          # Downloaded audio file
+│   │   │   ├── audio.txt          # Transcription output
+│   │   │   ├── download.log       # yt-dlp log
+│   │   │   ├── transcribe.log     # Whisper log
+│   │   │   └── worker.log         # Background process log
+├── kb-jobs.json                    # Job state file
+├── capabilities.json               # System capabilities
+└── .env                            # API keys
+```
 
 ## Obsidian Output Paths (Summary)
 

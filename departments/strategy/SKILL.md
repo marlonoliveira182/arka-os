@@ -1,10 +1,14 @@
 ---
 name: strat
 description: >
-  Strategy department. Market analysis, brainstorming, competitive intelligence,
-  business planning, SWOT, new ideas evaluation.
-  Use when user says "strat", "strategy", "brainstorm", "market", "swot", "idea".
-allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
+  Strategy department. Structured brainstorming with 5 perspective agents (Visionary,
+  Pragmatist, Devil's Advocate, Customer Voice, Analyst), market analysis with TAM/SAM/SOM
+  sizing, client prospecting, competitive intelligence deep-dives, SWOT analysis, new idea
+  evaluation with ROI estimation, strategic pivot analysis, roadmap creation, and industry
+  trend reports. All output saved to Obsidian vault.
+  Use when user says "strat", "strategy", "brainstorm", "market", "swot", "idea", "competitor",
+  "analysis", "pivot", "growth", "roadmap", "planning", "trends", "prospect", "evaluate",
+  "tam", "market size", or any strategic planning task.
 ---
 
 # Strategy Department — ARKA OS

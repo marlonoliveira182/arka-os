@@ -1,10 +1,15 @@
 ---
 name: mkt
 description: >
-  Marketing department. Social media content, affiliate marketing, email campaigns,
-  ad copy, landing pages, content strategy. Uses knowledge base personas for style.
-  Use when user says "mkt", "social", "content", "affiliate", "ads", "email", "post".
-allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
+  Marketing department. Creates social media posts for Instagram, LinkedIn, X/Twitter, and
+  TikTok. Generates content calendars, Reels/Shorts scripts, Instagram Stories sequences,
+  email campaigns (welcome, nurture, launch, cart abandonment), landing page copy, ad copy,
+  affiliate marketing content, SEO blog articles, copy analysis, brand voice guidelines, and
+  full marketing audits with 5 parallel agents. Uses knowledge base personas for authentic voice.
+  All output saved to Obsidian vault.
+  Use when user says "mkt", "social", "content", "affiliate", "ads", "email", "post",
+  "marketing", "campaign", "landing page", "instagram", "linkedin", "twitter", "tiktok",
+  "reels", "stories", "blog", "seo", "brand", "audit", "calendar", or any marketing task.
 ---
 
 # Marketing Department — ARKA OS

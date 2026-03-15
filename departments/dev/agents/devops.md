@@ -3,7 +3,6 @@ name: devops
 description: >
   DevOps Engineer — Deployment, CI/CD, infrastructure, monitoring, security.
   Manages environments and keeps things running.
-allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
 ---
 
 # DevOps — Carlos

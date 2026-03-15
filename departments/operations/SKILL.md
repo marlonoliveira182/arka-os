@@ -1,10 +1,14 @@
 ---
 name: ops
 description: >
-  Operations department. Automations, task management, email, calendar, invoicing,
-  routine processes. Integrates with ClickUp, Gmail, Calendar MCPs.
-  Use when user says "ops", "tasks", "email", "calendar", "automate", "invoice".
-allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
+  Operations department. Task management via ClickUp, email drafting via Gmail, calendar
+  management via Google Calendar, meeting scheduling and agenda preparation, invoice generation,
+  process automation with SOP creation, operational reports, client onboarding checklists,
+  daily standups, and multi-platform messaging (Slack, Discord, WhatsApp, Teams). Manages
+  notification channels and broadcasts. All output saved to Obsidian vault.
+  Use when user says "ops", "tasks", "email", "calendar", "automate", "invoice", "meeting",
+  "workflow", "process", "schedule", "channel", "notify", "broadcast", "onboard client",
+  "standup", "slack", "discord", "whatsapp", "teams", or any operational task.
 ---
 
 # Operations Department — ARKA OS

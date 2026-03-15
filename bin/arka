@@ -27,6 +27,23 @@ case "${1:-}" in
     cat "$ARKA_OS/VERSION"
     exit 0
     ;;
+  kb)
+    shift
+    SCRIPTS_DIR="$HOME/.claude/skills/arka-knowledge/scripts"
+    # Fallback to repo scripts location
+    if [ ! -d "$SCRIPTS_DIR" ]; then
+        REPO_DIR="$(cat "$ARKA_OS/.repo-path" 2>/dev/null)"
+        SCRIPTS_DIR="$REPO_DIR/departments/knowledge/scripts"
+    fi
+    case "${1:-}" in
+      queue)        bash "$SCRIPTS_DIR/kb-status.sh" "${@:2}" ;;
+      status)       bash "$SCRIPTS_DIR/kb-status.sh" "${@:2}" ;;
+      capabilities) bash "$SCRIPTS_DIR/kb-check-capabilities.sh" ;;
+      cleanup)      bash "$SCRIPTS_DIR/kb-cleanup.sh" "${@:2}" ;;
+      *)            claude "/kb $*" ;;
+    esac
+    exit $?
+    ;;
   *)
     if [ $# -gt 0 ]; then
       claude "$*"

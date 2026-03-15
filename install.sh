@@ -180,11 +180,17 @@ for dept in "${DEPARTMENTS[@]}"; do
         dept_skill_name="arka-$dept"
         mkdir -p "$SKILLS_DIR/$dept_skill_name"
         cp "$SOURCE_DIR/departments/$dept/SKILL.md" "$SKILLS_DIR/$dept_skill_name/SKILL.md"
+        # Copy bundled resources (scripts, references, assets) if they exist
+        for resource_dir in scripts references assets; do
+            if [ -d "$SOURCE_DIR/departments/$dept/$resource_dir" ]; then
+                cp -r "$SOURCE_DIR/departments/$dept/$resource_dir" "$SKILLS_DIR/$dept_skill_name/"
+            fi
+        done
         echo -e "  ${GREEN}✓${NC} $dept"
     fi
 done
 
-# ─── Sub-Skills (scaffold, mcp) ────────────────────────────────────────────
+# ─── Sub-Skills (scaffold, mcp, onboard, etc.) ───────────────────────────
 echo -e "${BLUE}[Sub-Skills]${NC}"
 SUB_SKILL_COUNT=0
 for skill_dir in "$SOURCE_DIR"/departments/*/skills/*/; do
@@ -192,10 +198,22 @@ for skill_dir in "$SOURCE_DIR"/departments/*/skills/*/; do
         skill_name="arka-$(basename "$skill_dir")"
         mkdir -p "$SKILLS_DIR/$skill_name"
         cp "${skill_dir}SKILL.md" "$SKILLS_DIR/$skill_name/SKILL.md"
+        # Copy bundled resources (scripts, references, assets) if they exist
+        for resource_dir in scripts references assets; do
+            if [ -d "${skill_dir}$resource_dir" ]; then
+                cp -r "${skill_dir}$resource_dir" "$SKILLS_DIR/$skill_name/"
+            fi
+        done
         echo -e "  ${GREEN}✓${NC} $(basename "$skill_dir")"
         SUB_SKILL_COUNT=$((SUB_SKILL_COUNT + 1))
     fi
 done
+
+# ─── Make KB Scripts Executable ────────────────────────────────────────────
+if [ -d "$SKILLS_DIR/arka-knowledge/scripts" ]; then
+    chmod +x "$SKILLS_DIR/arka-knowledge/scripts/"*.sh 2>/dev/null || true
+    echo -e "  ${GREEN}✓${NC} KB scripts made executable"
+fi
 
 # ─── Personas (Agents) ─────────────────────────────────────────────────────
 echo -e "${BLUE}[Personas]${NC}"
@@ -286,6 +304,16 @@ fi
 if [ -f "$SOURCE_DIR/knowledge/obsidian-config.json" ]; then
     cp "$SOURCE_DIR/knowledge/obsidian-config.json" "$SKILLS_DIR/arka/knowledge/obsidian-config.json"
     echo -e "  ${GREEN}✓${NC} Obsidian configuration"
+fi
+
+# Copy ecosystems registry (preserve existing if present)
+if [ -f "$SOURCE_DIR/knowledge/ecosystems.json" ]; then
+    if [ ! -f "$SKILLS_DIR/arka/knowledge/ecosystems.json" ]; then
+        cp "$SOURCE_DIR/knowledge/ecosystems.json" "$SKILLS_DIR/arka/knowledge/ecosystems.json"
+        echo -e "  ${GREEN}✓${NC} Ecosystems registry (new)"
+    else
+        echo -e "  ${GREEN}✓${NC} Ecosystems registry (preserved)"
+    fi
 fi
 
 # ─── Auto-detect Obsidian Vault ─────────────────────────────────────────────
@@ -574,8 +602,31 @@ command -v composer &>/dev/null && echo -e "  ${GREEN}✓${NC} Composer" || echo
 command -v pnpm &>/dev/null && echo -e "  ${GREEN}✓${NC} pnpm" || echo -e "  ${YELLOW}⚠${NC} pnpm not found — install: npm install -g pnpm"
 command -v herd &>/dev/null && echo -e "  ${GREEN}✓${NC} Laravel Herd" || echo -e "  ${YELLOW}⚠${NC} Laravel Herd not found — https://herd.laravel.com"
 
+# ─── Capability Detection ──────────────────────────────────────────────────
+echo -e "${BLUE}[Capabilities]${NC}"
+CAPS_SCRIPT="$SOURCE_DIR/departments/knowledge/scripts/kb-check-capabilities.sh"
+if [ -f "$CAPS_SCRIPT" ]; then
+    # Run silently, just show summary
+    bash "$CAPS_SCRIPT" >/dev/null 2>&1 || true
+    if [ -f "$HOME/.arka-os/capabilities.json" ] && command -v jq &>/dev/null; then
+        T_METHOD=$(jq -r '.transcription.method // "none"' "$HOME/.arka-os/capabilities.json")
+        T_NOTE=$(jq -r '.transcription.note // "Unknown"' "$HOME/.arka-os/capabilities.json")
+        case "$T_METHOD" in
+            local_whisper) echo -e "  ${GREEN}✓${NC} Transcription: $T_NOTE" ;;
+            openai_api)    echo -e "  ${GREEN}✓${NC} Transcription: $T_NOTE" ;;
+            none)          echo -e "  ${YELLOW}⚠${NC} Transcription: $T_NOTE" ;;
+        esac
+        echo -e "  ${GREEN}✓${NC} Capabilities written to ~/.arka-os/capabilities.json"
+    else
+        echo -e "  ${YELLOW}⚠${NC} Could not read capabilities (jq may be missing)"
+    fi
+else
+    echo -e "  ${YELLOW}⚠${NC} Capability check script not found"
+fi
+
 # ─── ARKA OS Config Directory ─────────────────────────────────────────────
 mkdir -p "$HOME/.arka-os"
+mkdir -p "$HOME/.arka-os/media"
 
 # ─── Pro Content ──────────────────────────────────────────────────────────
 echo -e "${BLUE}[Pro Content]${NC}"

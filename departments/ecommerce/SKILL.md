@@ -1,9 +1,14 @@
 ---
 name: ecom
 description: >
-  E-commerce department. Store management, product optimization, pricing, launches.
-  Integrates with Shopify MCP. Use when user says "ecom", "store", "product", "shop".
-allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
+  E-commerce department. Full store audits with 5 parallel agents (UX, SEO, performance,
+  content, conversion), product listing optimization, pricing strategy analysis, store launch
+  plans, e-commerce ad campaigns, competitor analysis, e-commerce SEO audits, automated email
+  flows (cart abandonment, post-purchase, win-back), and store performance reports. Integrates
+  with Shopify MCP for direct product/order/customer management. All output saved to Obsidian.
+  Use when user says "ecom", "store", "product", "shop", "shopify", "ecommerce", "e-commerce",
+  "sales", "conversion", "pricing", "catalog", "inventory", "cart", "checkout", "listing",
+  or any online store task.
 ---
 
 # E-commerce Department — ARKA OS

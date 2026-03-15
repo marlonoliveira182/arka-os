@@ -89,7 +89,18 @@
         "date_created": "{date}",
         "tags": ["report", "{department}"]
       }
+    },
+    "ecosystem": {
+      "frontmatter": {
+        "type": "ecosystem",
+        "name": "{name}",
+        "date_updated": "{date}",
+        "tags": ["ecosystem", "project"]
+      }
     }
+  },
+  "paths_extra": {
+    "ecosystems": "Projects/Ecosystems"
   },
   "moc_pages": {
     "personas": "Personas MOC",

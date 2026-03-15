@@ -1,10 +1,10 @@
 ---
 name: arka
 description: >
-  ARKA OS main orchestrator. Routes commands to departments, provides system-level
-  functions like standup, monitoring, and status. Integrates with Obsidian vault.
-  Use when user says "arka", "standup", "status", "monitor", or any system-level command.
-allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
+  ARKA OS main orchestrator and company operating system hub. Routes commands to departments,
+  runs daily standups, system monitoring, project onboarding, and cross-department coordination.
+  Use when user says "arka", "standup", "status", "monitor", "onboard", "help", "system",
+  "company os", "version", "update", or any system-level or cross-department command.
 ---
 
 # ARKA OS — Main Orchestrator
@@ -88,10 +88,11 @@ Documents/Personal/
 
 Daily standup process:
 1. Scan `projects/` for active projects — read each PROJECT.md
-2. Check ClickUp MCP for pending tasks (if available)
-3. Check Google Calendar MCP for today's meetings (if available)
-4. Check Gmail MCP for unread important emails (if available)
-5. Summarize in this format:
+2. Read `knowledge/ecosystems.json` — group projects by ecosystem for the summary
+3. Check ClickUp MCP for pending tasks (if available)
+4. Check Google Calendar MCP for today's meetings (if available)
+5. Check Gmail MCP for unread important emails (if available)
+6. Summarize in this format (group projects by ecosystem if applicable):
 
 ```
 ═══ ARKA OS — Daily Standup ═══
@@ -116,51 +117,13 @@ Date: [today]
 ═══════════════════════════════
 ```
 
-## /arka onboard <project-name>
+## /arka onboard <path>
 
-New project setup:
-1. Ask the user for: client name, project type, tech stack, special requirements
-2. Create `projects/<project-name>/PROJECT.md` with:
-   - Client info, stack, conventions, decisions
-3. Generate initial PROJECT.md based on global CLAUDE.md standards
-4. Apply MCP profile (read `departments/dev/skills/scaffold/SKILL.md` for profile mapping)
+Delegates to the dev department's onboard sub-skill for full automatic project onboarding.
 
-**Obsidian integration — ALSO create:**
+Read `departments/dev/skills/onboard/SKILL.md` and execute its workflow. This auto-detects the project's stack, architecture, conventions, and generates all context (PROJECT.md, MCP profile, Obsidian pages, ecosystem assignment).
 
-5. **Main page:** `Documents/Personal/Projects/<name>/Home.md`
-```markdown
----
-type: project
-name: <name>
-client: <client>
-stack: [detected stack]
-status: active
-date_created: <YYYY-MM-DD>
-tags:
-  - project
-  - <stack-tag>
----
-
-# <name>
-
-> WizardingCode Project for <client>
-
-## Overview
-[Project description]
-
-## Architecture
-- [[<name> - Architecture]]
-
-## Links
-- ARKA OS: `projects/<name>/PROJECT.md`
-
----
-*Part of the [[Projects MOC]]*
-```
-
-6. **Architecture page:** `Documents/Personal/Projects/<name>/Architecture/decisions.md`
-7. **Update Projects MOC:** Add link to the new project
-8. **Link from WizardingCode MOC** if applicable
+For new projects from templates, use `/dev scaffold` instead.
 
 ## /arka status
 

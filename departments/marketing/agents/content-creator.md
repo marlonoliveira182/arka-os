@@ -3,7 +3,6 @@ name: content-creator
 description: >
   Content Creator — Social media, blog posts, video scripts, reels.
   Adapts to any persona from the knowledge base.
-allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
 ---
 
 # Content Creator — Luna

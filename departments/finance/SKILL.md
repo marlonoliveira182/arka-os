@@ -1,10 +1,14 @@
 ---
 name: fin
 description: >
-  Finance department. Financial planning, investment analysis, bank negotiation,
-  pitch preparation, budgeting, forecasting.
-  Use when user says "fin", "finance", "invest", "budget", "bank", "pitch".
-allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
+  Finance department. Generates financial reports (monthly/quarterly), revenue and expense
+  forecasts with 3 scenarios, project budgets, bank/investor negotiation preparation with
+  BATNA analysis, investor pitch materials, financial analysis, investment opportunity
+  evaluation, portfolio overviews, invoice generation, and cash flow projections. Integrates
+  with InvoiceExpress MCP. All output saved to Obsidian vault.
+  Use when user says "fin", "finance", "invest", "budget", "bank", "pitch", "invoice",
+  "revenue", "forecast", "cash flow", "profit", "loss", "roi", "margin", "negotiate",
+  "portfolio", "financial report", or any financial task.
 ---
 
 # Finance Department — ARKA OS

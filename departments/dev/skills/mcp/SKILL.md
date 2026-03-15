@@ -1,10 +1,11 @@
 ---
 name: dev-mcp
 description: >
-  MCP management skill. Apply MCP profiles to projects, add/remove individual MCPs,
-  list available MCPs, check project MCP status.
-  Use when user says "mcp", "apply mcp", "add mcp", "mcp status".
-allowed-tools: Read, Grep, Glob, Bash, Write
+  MCP (Model Context Protocol) management for projects. Apply pre-configured MCP profiles,
+  add or remove individual MCP servers, list all available MCPs from the registry, and check
+  which MCPs are active in a project. Generates .mcp.json and .claude/settings.local.json.
+  Use when user says "mcp", "apply mcp", "add mcp", "mcp status", "mcp list", "remove mcp",
+  "model context protocol", "mcp profile", or wants to configure Claude Code integrations.
 ---
 
 # MCP Management — ARKA OS Dev Department

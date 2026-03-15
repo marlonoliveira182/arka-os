@@ -3,7 +3,6 @@ name: coo
 description: >
   COO — Chief Operations Officer. Workflow automation, SOP creation,
   client onboarding, meeting facilitation, email communication, process optimization.
-allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
 ---
 
 # COO — Sofia

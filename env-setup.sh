@@ -60,6 +60,57 @@ if ! command -v jq &>/dev/null; then
     exit 1
 fi
 
+# ─── ARKA OS Service Keys (AI services) ─────────────────────────────────────
+echo -e "${BLUE}[ARKA OS Service Keys]${NC}"
+echo -e "  These keys enable AI features like Whisper transcription and LLM routing."
+echo ""
+
+SERVICE_KEYS=(
+    "OPENAI_API_KEY|Go to platform.openai.com → API Keys"
+    "GEMINI_API_KEY|Go to aistudio.google.com → API Keys"
+    "OPENROUTER_API_KEY|Go to openrouter.ai → Dashboard → Keys"
+)
+
+SERVICE_CONFIGURED=0
+SERVICE_SKIPPED=0
+
+for entry in "${SERVICE_KEYS[@]}"; do
+    var="${entry%%|*}"
+    guidance="${entry#*|}"
+
+    # Check if already set
+    current_value="${!var}"
+    if [ -n "$current_value" ] && [ "$current_value" != '${'"$var"'}' ]; then
+        echo -e "  ${GREEN}✓${NC} $var (already configured)"
+        continue
+    fi
+
+    echo -e "${BLUE}$var${NC}"
+    echo -e "  ${YELLOW}→${NC} $guidance"
+    read -rp "  Value (press Enter to skip): " value
+
+    if [ -n "$value" ]; then
+        if grep -q "^export $var=" "$ARKA_ENV_FILE" 2>/dev/null; then
+            sed -i '' "s|^export $var=.*|export $var=\"$value\"|" "$ARKA_ENV_FILE"
+        else
+            echo "export $var=\"$value\"" >> "$ARKA_ENV_FILE"
+        fi
+        SERVICE_CONFIGURED=$((SERVICE_CONFIGURED + 1))
+        echo -e "  ${GREEN}✓${NC} Saved"
+    else
+        SERVICE_SKIPPED=$((SERVICE_SKIPPED + 1))
+        echo -e "  ${YELLOW}⏭${NC} Skipped"
+    fi
+    echo ""
+done
+
+echo -e "  Service keys: ${CYAN}${SERVICE_CONFIGURED}${NC} configured, ${CYAN}${SERVICE_SKIPPED}${NC} skipped"
+echo ""
+
+# ─── MCP Integration Keys ───────────────────────────────────────────────────
+echo -e "${BLUE}[MCP Integration Keys]${NC}"
+echo ""
+
 # Read all required env vars from registry
 ENV_VARS=$(jq -r '.mcpServers | to_entries[] | .value.required_env[]?' "$REGISTRY" 2>/dev/null | sort -u)
 
@@ -111,11 +162,27 @@ if [ -f "$ARKA_ENV_FILE" ]; then
     fi
 fi
 
+# ─── Capability Detection ────────────────────────────────────────────────────
+echo ""
+echo -e "${BLUE}[Capability Detection]${NC}"
+# Source env so capabilities check sees the new keys
+[ -f "$ARKA_ENV_FILE" ] && source "$ARKA_ENV_FILE"
+
+CAPS_SCRIPT="$SCRIPT_DIR/departments/knowledge/scripts/kb-check-capabilities.sh"
+if [ -f "$CAPS_SCRIPT" ]; then
+    bash "$CAPS_SCRIPT" 2>/dev/null
+elif [ -f "$HOME/.claude/skills/arka-knowledge/scripts/kb-check-capabilities.sh" ]; then
+    bash "$HOME/.claude/skills/arka-knowledge/scripts/kb-check-capabilities.sh" 2>/dev/null
+else
+    echo -e "  ${YELLOW}⚠${NC} Capability check script not found — run install.sh first"
+fi
+
 echo ""
 echo -e "${GREEN}═══ Environment Setup Complete ═══${NC}"
-echo -e "  Configured: ${CYAN}${CONFIGURED}${NC}"
-echo -e "  Skipped:    ${CYAN}${SKIPPED}${NC}"
-echo -e "  Env file:   ${CYAN}${ARKA_ENV_FILE}${NC}"
+echo -e "  Service keys: ${CYAN}${SERVICE_CONFIGURED}${NC} configured"
+echo -e "  MCP keys:     ${CYAN}${CONFIGURED}${NC} configured, ${CYAN}${SKIPPED}${NC} skipped"
+echo -e "  Env file:     ${CYAN}${ARKA_ENV_FILE}${NC}"
+echo -e "  Capabilities: ${CYAN}${ARKA_ENV_DIR}/capabilities.json${NC}"
 echo ""
 echo -e "Run ${CYAN}source ~/.zshrc${NC} to load the new variables."
 echo -e "${GREEN}══════════════════════════════════${NC}"

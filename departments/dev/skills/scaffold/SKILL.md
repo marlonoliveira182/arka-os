@@ -1,10 +1,11 @@
 ---
 name: dev-scaffold
 description: >
-  Project scaffolding skill. Creates new projects from real git repositories with
-  automated dependency installation, MCP configuration, and Obsidian integration.
-  Use when user says "scaffold", "new project", "create project", "start project".
-allowed-tools: Read, Grep, Glob, Bash, WebFetch, Write
+  Project scaffolding from real git repositories. Creates new Laravel, Nuxt, Vue, React, or
+  Next.js projects with automated dependency installation, mandatory packages, MCP configuration,
+  Laravel Herd linking, Obsidian project pages, and initial git commit. Full-stack monorepo support.
+  Use when user says "scaffold", "new project", "create project", "start project", "bootstrap",
+  "init project", "setup project", or wants to create a new codebase from a template.
 ---
 
 # Project Scaffolding — ARKA OS Dev Department
