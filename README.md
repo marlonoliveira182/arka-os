@@ -26,20 +26,24 @@ Everything they produce is saved to your [Obsidian](https://obsidian.md) vault, 
 
 ## Quick Install
 
+### One Command (Recommended)
+
 ```bash
-# 1. Clone the repository
-git clone https://github.com/andreagroferreira/arka-os.git
-
-# 2. Run the installer
-cd arka-os && bash install.sh
-
-# 3. Load the CLI (or restart your terminal)
-source ~/.zshrc    # or: source ~/.bashrc
+curl -fsSL https://raw.githubusercontent.com/andreagroferreira/arka-os/master/install.sh | bash
 ```
+
+### Or Clone Manually
+
+```bash
+git clone https://github.com/andreagroferreira/arka-os.git
+cd arka-os && bash install.sh
+```
+
+Then restart your terminal or run: `source ~/.zshrc`
 
 That's it. Type `arka` to start.
 
-> **Requires:** [Claude Code](https://claude.ai/code) must be installed first.
+> **Requires:** [Claude Code](https://claude.ai/code) and [Git](https://git-scm.com) must be installed first.
 
 ---
 

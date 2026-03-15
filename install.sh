@@ -12,12 +12,30 @@ BLUE='\033[0;34m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-SOURCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SOURCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd)"
 SKILLS_DIR="$HOME/.claude/skills"
 AGENTS_DIR="$HOME/.claude/agents"
 ARKA_OS_DIR="$HOME/.claude/skills/arka"
-OBSIDIAN_VAULT="/Users/andreagroferreira/Documents/Personal"
 SHELL_RC="$HOME/.zshrc"
+
+# ─── Curl Pipe Detection ─────────────────────────────────────────────────────
+# If running via `curl ... | bash`, SOURCE_DIR won't contain the repo files.
+# In that case, clone the repo to ~/.arka-os/repo and use that as SOURCE_DIR.
+if [ ! -f "$SOURCE_DIR/VERSION" ]; then
+    REPO_URL="https://github.com/andreagroferreira/arka-os.git"
+    CLONE_DIR="$HOME/.arka-os/repo"
+    echo ""
+    echo -e "${BLUE}Downloading ARKA OS...${NC}"
+    if [ -d "$CLONE_DIR/.git" ]; then
+        git -C "$CLONE_DIR" pull --quiet
+        echo -e "  ${GREEN}✓${NC} Updated existing download"
+    else
+        mkdir -p "$HOME/.arka-os"
+        git clone --quiet "$REPO_URL" "$CLONE_DIR"
+        echo -e "  ${GREEN}✓${NC} Downloaded ARKA OS"
+    fi
+    SOURCE_DIR="$CLONE_DIR"
+fi
 
 # ─── Uninstall ────────────────────────────────────────────────────────────────
 if [ "${1:-}" = "--uninstall" ]; then
@@ -270,9 +288,74 @@ if [ -f "$SOURCE_DIR/knowledge/obsidian-config.json" ]; then
     echo -e "  ${GREEN}✓${NC} Obsidian configuration"
 fi
 
-# Verify Obsidian vault
-if [ -d "$OBSIDIAN_VAULT" ]; then
-    echo -e "  ${GREEN}✓${NC} Obsidian vault found at $OBSIDIAN_VAULT"
+# ─── Auto-detect Obsidian Vault ─────────────────────────────────────────────
+OBSIDIAN_VAULT=""
+FOUND_VAULTS=()
+SEARCH_DIRS=(
+    "$HOME/Documents"
+    "$HOME"
+    "$HOME/Obsidian"
+    "$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents"
+)
+for dir in "${SEARCH_DIRS[@]}"; do
+    [ -d "$dir" ] || continue
+    while IFS= read -r vault_marker; do
+        FOUND_VAULTS+=("$(dirname "$vault_marker")")
+    done < <(find "$dir" -maxdepth 3 -name ".obsidian" -type d 2>/dev/null)
+done
+
+# Deduplicate vaults
+UNIQUE_VAULTS=()
+for v in "${FOUND_VAULTS[@]}"; do
+    ALREADY=false
+    for u in "${UNIQUE_VAULTS[@]}"; do
+        [ "$v" = "$u" ] && ALREADY=true && break
+    done
+    $ALREADY || UNIQUE_VAULTS+=("$v")
+done
+
+if [ ${#UNIQUE_VAULTS[@]} -eq 1 ]; then
+    OBSIDIAN_VAULT="${UNIQUE_VAULTS[0]}"
+    echo -e "  ${GREEN}✓${NC} Obsidian vault auto-detected: $OBSIDIAN_VAULT"
+elif [ ${#UNIQUE_VAULTS[@]} -gt 1 ]; then
+    echo -e "  ${BLUE}Found multiple Obsidian vaults:${NC}"
+    for i in "${!UNIQUE_VAULTS[@]}"; do
+        echo -e "    ${CYAN}$((i+1)))${NC} ${UNIQUE_VAULTS[$i]}"
+    done
+    echo ""
+    read -rp "$(echo -e "  ${BLUE}Pick a vault (1-${#UNIQUE_VAULTS[@]}), or press Enter to skip: ${NC}")" VAULT_CHOICE < /dev/tty
+    if [ -n "$VAULT_CHOICE" ] && [ "$VAULT_CHOICE" -ge 1 ] 2>/dev/null && [ "$VAULT_CHOICE" -le ${#UNIQUE_VAULTS[@]} ] 2>/dev/null; then
+        OBSIDIAN_VAULT="${UNIQUE_VAULTS[$((VAULT_CHOICE-1))]}"
+        echo -e "  ${GREEN}✓${NC} Using vault: $OBSIDIAN_VAULT"
+    else
+        echo -e "  ${YELLOW}⚠${NC} Skipped Obsidian vault selection"
+    fi
+else
+    echo -e "  ${YELLOW}⚠${NC} No Obsidian vaults found automatically"
+    read -rp "$(echo -e "  ${BLUE}Enter your Obsidian vault path (or press Enter to skip): ${NC}")" MANUAL_VAULT < /dev/tty
+    if [ -n "$MANUAL_VAULT" ] && [ -d "$MANUAL_VAULT" ]; then
+        OBSIDIAN_VAULT="$MANUAL_VAULT"
+        echo -e "  ${GREEN}✓${NC} Using vault: $OBSIDIAN_VAULT"
+    elif [ -n "$MANUAL_VAULT" ]; then
+        echo -e "  ${RED}✗${NC} Directory not found: $MANUAL_VAULT"
+    else
+        echo -e "  ${YELLOW}⚠${NC} Skipped — you can configure this later in obsidian-config.json"
+    fi
+fi
+
+# Update obsidian-config.json with detected vault path
+if [ -n "$OBSIDIAN_VAULT" ] && [ -f "$SKILLS_DIR/arka/knowledge/obsidian-config.json" ]; then
+    if command -v jq &>/dev/null; then
+        jq --arg vp "$OBSIDIAN_VAULT" '.vault_path = $vp' "$SKILLS_DIR/arka/knowledge/obsidian-config.json" > "$SKILLS_DIR/arka/knowledge/obsidian-config.json.tmp"
+        mv "$SKILLS_DIR/arka/knowledge/obsidian-config.json.tmp" "$SKILLS_DIR/arka/knowledge/obsidian-config.json"
+    else
+        # Fallback: use sed if jq is not available
+        sed -i '' "s|\"vault_path\":.*|\"vault_path\": \"$OBSIDIAN_VAULT\",|" "$SKILLS_DIR/arka/knowledge/obsidian-config.json" 2>/dev/null || true
+    fi
+fi
+
+# Set up Obsidian vault directories
+if [ -n "$OBSIDIAN_VAULT" ] && [ -d "$OBSIDIAN_VAULT" ]; then
 
     # Create ARKA OS directories in vault if they don't exist
     mkdir -p "$OBSIDIAN_VAULT/WizardingCode/Marketing"
@@ -454,7 +537,7 @@ MOCEOF
         echo -e "  ${GREEN}✓${NC} MOC pages already exist"
     fi
 else
-    echo -e "  ${YELLOW}⚠${NC} Obsidian vault not found at $OBSIDIAN_VAULT"
+    echo -e "  ${YELLOW}⚠${NC} Obsidian vault not configured — vault directories not created"
 fi
 
 # Verify Obsidian MCP
@@ -492,7 +575,7 @@ fi
 
 # ─── Environment Setup ───────────────────────────────────────────────────
 echo ""
-read -rp "$(echo -e "${BLUE}Configure API keys for MCPs? (y/N): ${NC}")" SETUP_ENV
+read -rp "$(echo -e "${BLUE}Configure API keys for MCPs? (y/N): ${NC}")" SETUP_ENV < /dev/tty
 if [ "$SETUP_ENV" = "y" ] || [ "$SETUP_ENV" = "Y" ]; then
     bash "$SOURCE_DIR/env-setup.sh"
 fi
@@ -514,7 +597,7 @@ echo -e "  Departments:  ${CYAN}${#DEPARTMENTS[@]}${NC} (dev, marketing, ecommer
 echo -e "  Sub-Skills:   ${CYAN}${SUB_SKILL_COUNT}${NC} (scaffold, mcp)"
 echo -e "  Personas:     ${CYAN}${AGENT_COUNT}${NC}"
 echo -e "  MCP Registry: ${CYAN}${MCP_COUNT:-?}${NC} MCPs, ${CYAN}${PROFILE_COUNT}${NC} profiles"
-echo -e "  Obsidian:     ${CYAN}${OBSIDIAN_VAULT}${NC}"
+echo -e "  Obsidian:     ${CYAN}${OBSIDIAN_VAULT:-not configured}${NC}"
 echo -e "  ARKA_OS:      ${CYAN}\$HOME/.claude/skills/arka${NC}"
 echo -e "  CLI:          ${CYAN}~/.local/bin/arka${NC}"
 echo ""

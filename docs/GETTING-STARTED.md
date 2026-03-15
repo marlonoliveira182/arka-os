@@ -32,33 +32,35 @@ Don't worry about installing these now — the installer will tell you what's mi
 
 ## Installation
 
-### Step 1: Download ARKA OS
+### One Command (Recommended)
 
 Open your terminal and run:
 
 ```bash
-git clone https://github.com/andreagroferreira/arka-os.git
+curl -fsSL https://raw.githubusercontent.com/andreagroferreira/arka-os/master/install.sh | bash
 ```
 
-This creates a folder called `arka-os` with all the files.
+This downloads ARKA OS and runs the installer automatically. It will:
+- Download the ARKA OS files to `~/.arka-os/repo`
+- Set up the `arka` command so you can use it from anywhere
+- Install all the department skills and AI team members
+- Auto-detect your Obsidian vault and create folders for organizing output
+- Check which optional tools you have installed
+- Ask if you want to set up integrations (you can do this later)
 
-### Step 2: Run the Installer
+### Alternative: Clone Manually
+
+If you prefer to clone the repository yourself:
 
 ```bash
+git clone https://github.com/andreagroferreira/arka-os.git
 cd arka-os
 bash install.sh
 ```
 
-The installer will:
-- Set up the `arka` command so you can use it from anywhere
-- Install all the department skills and AI team members
-- Create folders in your Obsidian vault for organizing output
-- Check which optional tools you have installed
-- Ask if you want to set up integrations (you can do this later)
+### After Installation
 
-### Step 3: Load the Command
-
-After installation, either restart your terminal or run:
+Restart your terminal or run:
 
 ```bash
 source ~/.zshrc
@@ -66,7 +68,7 @@ source ~/.zshrc
 
 > **Using bash instead of zsh?** Run `source ~/.bashrc` instead.
 
-### Step 4: Verify It Works
+### Verify It Works
 
 ```bash
 arka --version
