@@ -1,0 +1,292 @@
+#!/usr/bin/env bash
+# ============================================================================
+# ARKA OS — Doctor (Health Check System)
+# Usage: arka doctor [--fix] [--json]
+# 12 modular checks: fail = critical, warn = advisory
+# ============================================================================
+set -euo pipefail
+
+# ─── Args ──────────────────────────────────────────────────────────────────
+FIX_MODE=false
+JSON_MODE=false
+for arg in "$@"; do
+  case "$arg" in
+    --fix)  FIX_MODE=true ;;
+    --json) JSON_MODE=true ;;
+  esac
+done
+
+# ─── Colors ────────────────────────────────────────────────────────────────
+if [ "$JSON_MODE" = true ]; then
+  # No colors in JSON mode
+  G="" Y="" R="" C="" N="" B=""
+else
+  G='\033[0;32m'   # green
+  Y='\033[1;33m'   # yellow
+  R='\033[0;31m'   # red
+  C='\033[0;36m'   # cyan
+  N='\033[0m'      # reset
+  B='\033[1m'      # bold
+fi
+
+ARKA_OS="${ARKA_OS:-$HOME/.claude/skills/arka}"
+RESULTS=()
+PASS_COUNT=0
+WARN_COUNT=0
+FAIL_COUNT=0
+
+# ─── Check Runner ──────────────────────────────────────────────────────────
+# run_check <name> <severity:fail|warn> <description> <pass:true|false> [fix_message]
+run_check() {
+  local name="$1" severity="$2" desc="$3" passed="$4" fix_msg="${5:-}"
+  local status icon
+
+  if [ "$passed" = true ]; then
+    status="pass"
+    icon="${G}✓${N}"
+    PASS_COUNT=$((PASS_COUNT + 1))
+  elif [ "$severity" = "fail" ]; then
+    status="fail"
+    icon="${R}✗${N}"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+  else
+    status="warn"
+    icon="${Y}⚠${N}"
+    WARN_COUNT=$((WARN_COUNT + 1))
+  fi
+
+  if [ "$JSON_MODE" = true ]; then
+    RESULTS+=("{\"name\":\"$name\",\"status\":\"$status\",\"severity\":\"$severity\",\"description\":\"$desc\",\"fix\":\"$fix_msg\"}")
+  else
+    printf "  %b  %-20s %s" "$icon" "$name" "$desc"
+    if [ "$status" != "pass" ] && [ -n "$fix_msg" ]; then
+      printf " ${Y}(%s)${N}" "$fix_msg"
+    fi
+    echo ""
+  fi
+}
+
+# ─── Header ────────────────────────────────────────────────────────────────
+if [ "$JSON_MODE" != true ]; then
+  echo ""
+  echo -e "${C}╔══════════════════════════════════════════════════╗${N}"
+  echo -e "${C}║${N}  ${B}ARKA OS Doctor${N} — Health Check System           ${C}║${N}"
+  echo -e "${C}╚══════════════════════════════════════════════════╝${N}"
+  echo ""
+fi
+
+# ─── Check 1: Claude CLI ──────────────────────────────────────────────────
+CLAUDE_OK=false
+if command -v claude &>/dev/null; then
+  CLAUDE_OK=true
+fi
+run_check "claude-cli" "fail" "Claude Code CLI installed" "$CLAUDE_OK" "Install: npm install -g @anthropic-ai/claude-code"
+
+# ─── Check 2: ARKA OS Install ─────────────────────────────────────────────
+ARKA_OK=false
+ARKA_DESC="ARKA OS installed"
+if [ -d "$ARKA_OS" ] && [ -f "$ARKA_OS/SKILL.md" ]; then
+  ARKA_OK=true
+  ARKA_VER=$(cat "$ARKA_OS/VERSION" 2>/dev/null || echo "?")
+  ARKA_DESC="ARKA OS v${ARKA_VER} installed"
+fi
+run_check "arka-install" "fail" "$ARKA_DESC" "$ARKA_OK" "Run: bash install.sh"
+
+# ─── Check 3: jq ──────────────────────────────────────────────────────────
+JQ_OK=false
+if command -v jq &>/dev/null; then
+  JQ_OK=true
+fi
+run_check "jq" "fail" "jq available" "$JQ_OK" "Install: brew install jq"
+
+# ─── Check 4: User Profile ────────────────────────────────────────────────
+PROFILE_OK=false
+PROFILE_DESC="User profile exists"
+PROFILE_FILE="$HOME/.arka-os/profile.json"
+if [ -f "$PROFILE_FILE" ]; then
+  PNAME=$(jq -r '.user_name // ""' "$PROFILE_FILE" 2>/dev/null)
+  if [ -n "$PNAME" ] && [ "$PNAME" != "null" ]; then
+    PROFILE_OK=true
+    PROFILE_DESC="User profile exists ($PNAME)"
+  else
+    PROFILE_DESC="User profile exists but missing name"
+  fi
+fi
+if [ "$FIX_MODE" = true ] && [ "$PROFILE_OK" = false ] && [ ! -f "$PROFILE_FILE" ]; then
+  mkdir -p "$HOME/.arka-os"
+  echo '{"user_name":"","company_name":"","role":"","onboarding_version":"1"}' > "$PROFILE_FILE"
+  PROFILE_DESC="User profile created (run /arka setup to complete)"
+fi
+run_check "profile" "warn" "$PROFILE_DESC" "$PROFILE_OK" "Run: /arka setup"
+
+# ─── Check 5: Status Line ─────────────────────────────────────────────────
+SL_OK=false
+SL_DESC="Status line configured"
+SETTINGS_FILE="$HOME/.claude/settings.json"
+if [ -f "$SETTINGS_FILE" ] && jq -e '.statusLine.command' "$SETTINGS_FILE" &>/dev/null; then
+  SL_CMD=$(jq -r '.statusLine.command' "$SETTINGS_FILE")
+  if [ -f "$SL_CMD" ]; then
+    SL_OK=true
+  else
+    SL_DESC="Status line command not found: $SL_CMD"
+  fi
+fi
+if [ "$FIX_MODE" = true ] && [ "$SL_OK" = false ] && [ -f "$ARKA_OS/statusline.sh" ]; then
+  if [ -f "$SETTINGS_FILE" ] && command -v jq &>/dev/null; then
+    jq --arg cmd "$ARKA_OS/statusline.sh" '.statusLine = {"type":"command","command":$cmd,"padding":2}' \
+      "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp" && mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
+    SL_OK=true
+    SL_DESC="Status line configured (fixed)"
+  fi
+fi
+run_check "statusline" "warn" "$SL_DESC" "$SL_OK" "Run: bash install.sh"
+
+# ─── Check 6: Hooks ───────────────────────────────────────────────────────
+HOOKS_OK=false
+HOOKS_DESC="Hooks configured"
+if [ -f "$SETTINGS_FILE" ] && jq -e '.hooks.UserPromptSubmit' "$SETTINGS_FILE" &>/dev/null; then
+  HOOKS_OK=true
+  HOOK_COUNT=$(jq '[.hooks | to_entries[].value[].hooks[]] | length' "$SETTINGS_FILE" 2>/dev/null || echo "0")
+  HOOKS_DESC="Hooks configured ($HOOK_COUNT hook(s))"
+fi
+if [ "$FIX_MODE" = true ] && [ "$HOOKS_OK" = false ]; then
+  HOOKS_DIR="$HOME/.claude/skills/arka/hooks"
+  if [ -d "$HOOKS_DIR" ] && [ -f "$SETTINGS_FILE" ] && command -v jq &>/dev/null; then
+    HOOKS_JSON=$(jq -n \
+      --arg ups "$HOOKS_DIR/user-prompt-submit.sh" \
+      --arg pc "$HOOKS_DIR/pre-compact.sh" \
+      '{
+        "UserPromptSubmit": [{"hooks":[{"type":"command","command":$ups,"timeout":10}]}],
+        "PreCompact": [{"hooks":[{"type":"command","command":$pc,"timeout":30}]}]
+      }')
+    jq --argjson hooks "$HOOKS_JSON" '.hooks = $hooks' "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp" && \
+      mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
+    HOOKS_OK=true
+    HOOKS_DESC="Hooks configured (fixed)"
+  fi
+fi
+run_check "hooks" "warn" "$HOOKS_DESC" "$HOOKS_OK" "Run: bash install.sh"
+
+# ─── Check 7: Obsidian Vault ──────────────────────────────────────────────
+OBS_OK=false
+OBS_DESC="Obsidian vault configured"
+OBS_CONFIG="$ARKA_OS/knowledge/obsidian-config.json"
+if [ -f "$OBS_CONFIG" ]; then
+  VAULT_PATH=$(jq -r '.vault_path // ""' "$OBS_CONFIG" 2>/dev/null)
+  if [ -n "$VAULT_PATH" ] && [ -d "$VAULT_PATH" ] && [ -d "$VAULT_PATH/.obsidian" ]; then
+    OBS_OK=true
+    OBS_DESC="Obsidian vault: $(basename "$VAULT_PATH")"
+  elif [ -n "$VAULT_PATH" ]; then
+    OBS_DESC="Obsidian vault path invalid: $VAULT_PATH"
+  fi
+fi
+run_check "obsidian" "warn" "$OBS_DESC" "$OBS_OK" "Run: bash install.sh (will auto-detect)"
+
+# ─── Check 8: Departments ─────────────────────────────────────────────────
+DEPT_OK=false
+DEPT_COUNT=0
+for dept_dir in "$HOME/.claude/skills"/arka-*/; do
+  [ -d "$dept_dir" ] && [ -f "$dept_dir/SKILL.md" ] && DEPT_COUNT=$((DEPT_COUNT + 1))
+done
+# Subtract non-department skills (arka-scaffold, arka-mcp, etc. are sub-skills but still count as skills)
+DEPT_DESC="$DEPT_COUNT department skills installed"
+if [ "$DEPT_COUNT" -ge 7 ]; then
+  DEPT_OK=true
+fi
+run_check "departments" "warn" "$DEPT_DESC" "$DEPT_OK" "Run: bash install.sh"
+
+# ─── Check 9: Personas ────────────────────────────────────────────────────
+PERSONA_OK=false
+PERSONA_COUNT=0
+for agent in "$HOME/.claude/agents"/arka-*.md; do
+  [ -f "$agent" ] && PERSONA_COUNT=$((PERSONA_COUNT + 1))
+done
+PERSONA_DESC="$PERSONA_COUNT agent files installed"
+if [ "$PERSONA_COUNT" -ge 10 ]; then
+  PERSONA_OK=true
+fi
+run_check "personas" "warn" "$PERSONA_DESC" "$PERSONA_OK" "Run: bash install.sh"
+
+# ─── Check 10: MCP Registry ───────────────────────────────────────────────
+MCP_OK=false
+MCP_DESC="MCP registry present"
+MCP_REG="$ARKA_OS/mcps/registry.json"
+if [ -f "$MCP_REG" ]; then
+  MCP_COUNT=$(jq '.mcpServers | length' "$MCP_REG" 2>/dev/null || echo "0")
+  MCP_OK=true
+  MCP_DESC="MCP registry ($MCP_COUNT MCPs)"
+fi
+run_check "mcp-registry" "fail" "$MCP_DESC" "$MCP_OK" "Run: bash install.sh"
+
+# ─── Check 11: Prerequisites ──────────────────────────────────────────────
+PREREQ_OK=true
+MISSING_PREREQS=""
+for bin in yt-dlp ffmpeg python3; do
+  if ! command -v "$bin" &>/dev/null; then
+    MISSING_PREREQS="$MISSING_PREREQS $bin"
+    PREREQ_OK=false
+  fi
+done
+MISSING_PREREQS="${MISSING_PREREQS# }"  # trim leading space
+if [ "$PREREQ_OK" = true ]; then
+  PREREQ_DESC="yt-dlp, ffmpeg, python3 available"
+else
+  PREREQ_DESC="Missing: $MISSING_PREREQS"
+fi
+run_check "prerequisites" "warn" "$PREREQ_DESC" "$PREREQ_OK" "brew install $MISSING_PREREQS"
+
+# ─── Check 12: Capabilities ───────────────────────────────────────────────
+CAPS_OK=false
+CAPS_DESC="capabilities.json present"
+CAPS_FILE="$HOME/.arka-os/capabilities.json"
+if [ -f "$CAPS_FILE" ]; then
+  # Check age (< 7 days)
+  CAPS_AGE=$(( ($(date +%s) - $(stat -f%m "$CAPS_FILE" 2>/dev/null || stat -c%Y "$CAPS_FILE" 2>/dev/null || echo 0)) ))
+  CAPS_DAYS=$((CAPS_AGE / 86400))
+  if [ "$CAPS_DAYS" -lt 7 ]; then
+    CAPS_OK=true
+    CAPS_DESC="capabilities.json (${CAPS_DAYS}d old)"
+  else
+    CAPS_DESC="capabilities.json stale (${CAPS_DAYS}d old, max 7d)"
+  fi
+fi
+if [ "$FIX_MODE" = true ] && [ "$CAPS_OK" = false ]; then
+  CAPS_SCRIPT="$ARKA_OS/../arka-knowledge/scripts/kb-check-capabilities.sh"
+  # Also check repo path
+  REPO_PATH=$(cat "$ARKA_OS/.repo-path" 2>/dev/null || echo "")
+  if [ -n "$REPO_PATH" ] && [ -f "$REPO_PATH/departments/knowledge/scripts/kb-check-capabilities.sh" ]; then
+    CAPS_SCRIPT="$REPO_PATH/departments/knowledge/scripts/kb-check-capabilities.sh"
+  fi
+  if [ -f "$CAPS_SCRIPT" ]; then
+    bash "$CAPS_SCRIPT" >/dev/null 2>&1 && CAPS_OK=true && CAPS_DESC="capabilities.json (refreshed)"
+  fi
+fi
+run_check "capabilities" "warn" "$CAPS_DESC" "$CAPS_OK" "Run: arka kb capabilities"
+
+# ─── Output ────────────────────────────────────────────────────────────────
+TOTAL=$((PASS_COUNT + WARN_COUNT + FAIL_COUNT))
+
+if [ "$JSON_MODE" = true ]; then
+  # Build JSON array
+  echo -n "["
+  for i in "${!RESULTS[@]}"; do
+    [ "$i" -gt 0 ] && echo -n ","
+    echo -n "${RESULTS[$i]}"
+  done
+  echo "]"
+else
+  echo ""
+  echo -e "  ${B}Results:${N} ${G}${PASS_COUNT} passed${N}, ${Y}${WARN_COUNT} warnings${N}, ${R}${FAIL_COUNT} failed${N} (${TOTAL} checks)"
+
+  if [ "$FAIL_COUNT" -gt 0 ]; then
+    echo ""
+    echo -e "  ${R}Some critical checks failed.${N} Run ${C}arka doctor --fix${N} to attempt auto-repair."
+  elif [ "$WARN_COUNT" -gt 0 ]; then
+    echo ""
+    echo -e "  ${Y}Some warnings detected.${N} Run ${C}arka doctor --fix${N} to attempt auto-repair."
+  else
+    echo ""
+    echo -e "  ${G}All checks passed!${N} ARKA OS is healthy."
+  fi
+  echo ""
+fi

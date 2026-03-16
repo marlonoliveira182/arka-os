@@ -4,7 +4,7 @@
 
 ## Version
 
-- **Current:** 0.2.0
+- **Current:** 0.3.0
 - **Version file:** `VERSION`
 - **Auto-update:** `version-check.sh` checks for updates once per 24h
 - **Update:** Run `arka update` or `cd <repo> && git pull && bash install.sh`
@@ -44,6 +44,9 @@ ARKA OS installs a global `arka` command:
 | `arka kb status [job-id]` | Check KB job status (no Claude Code needed) |
 | `arka kb capabilities` | Show available tools and API keys |
 | `arka kb cleanup` | Remove old media files |
+| `arka doctor` | Run health check system (12 checks) |
+| `arka doctor --fix` | Run health checks with auto-repair |
+| `arka doctor --json` | Output health checks as JSON |
 
 ## Tech Stack (Default)
 
@@ -299,6 +302,69 @@ Group related projects (e.g., API + frontend + admin) into ecosystems:
 Each project in an ecosystem has a role: `api`, `frontend`, `admin`, `worker`, `docs`, `landing`.
 
 Config: `knowledge/ecosystems.json`
+
+## Enhanced Status Line
+
+Two-line color-coded display showing session context and metrics:
+
+```
+▲ARKA  project-name  on feature/auth  [wt:feat-auth]  |  Opus 4.6
+██████░░░░ 62%  |  145K in 5.2K out  |  +50 -10  |  3m25s  |  $1.23
+```
+
+**Features:**
+- Color-coded context bar: green <60%, yellow 60-79%, red 80-89%, blinking red 90%+
+- Token count in K/M format from `context_window.total_input_tokens`
+- Smart git branch: hidden on `main`/`master`
+- Worktree indicator: `[wt:name]` when in a worktree
+- Cached git operations: `/tmp/arka-statusline-git-cache` (5s TTL)
+
+Config: `config/statusline.sh`
+
+## Hooks System
+
+ARKA OS uses Claude Code hooks for contextual intelligence:
+
+### UserPromptSubmit Hook
+Injects context per prompt (10s timeout):
+- **Active project detection** — if CWD matches a known project, injects `[Active Project: name]`
+- **Department routing hints** — signal word detection (build/code → dev, budget/invoice → fin, etc.)
+- **Time-of-day context** — morning/afternoon/evening
+
+Config: `config/hooks/user-prompt-submit.sh`
+
+### PreCompact Hook
+Saves session digest before context compaction (30s timeout):
+- Extracts last 5 assistant messages
+- Saves markdown digest to `~/.arka-os/session-digests/`
+- Auto-cleanup: keeps only last 50 digests
+- No LLM analysis — raw context preservation
+
+Config: `config/hooks/pre-compact.sh`
+
+## Doctor System
+
+`arka doctor [--fix] [--json]` — 12 modular health checks:
+
+| # | Check | Type | What |
+|---|-------|------|------|
+| 1 | `claude-cli` | fail | Claude Code CLI installed |
+| 2 | `arka-install` | fail | ARKA OS version + SKILL.md |
+| 3 | `jq` | fail | jq available |
+| 4 | `profile` | warn | User profile exists + has name |
+| 5 | `statusline` | warn | Status line configured in settings.json |
+| 6 | `hooks` | warn | Hooks configured in settings.json |
+| 7 | `obsidian` | warn | Vault path exists and is valid |
+| 8 | `departments` | warn | 7+ department skills installed |
+| 9 | `personas` | warn | 10+ agent files installed |
+| 10 | `mcp-registry` | fail | MCP registry.json present |
+| 11 | `prerequisites` | warn | yt-dlp, ffmpeg, python3 |
+| 12 | `capabilities` | warn | capabilities.json < 7 days old |
+
+- `--fix` attempts auto-repair (profile, statusline, hooks, capabilities)
+- `--json` outputs JSON array for programmatic use
+
+Config: `bin/arka-doctor`
 
 ## Capabilities System
 

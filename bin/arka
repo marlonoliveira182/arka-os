@@ -64,6 +64,11 @@ case "${1:-}" in
     cat "$ARKA_OS/VERSION"
     exit 0
     ;;
+  doctor)
+    shift
+    bash "$HOME/.local/bin/arka-doctor" "$@"
+    exit $?
+    ;;
   kb)
     shift
     SCRIPTS_DIR="$HOME/.claude/skills/arka-knowledge/scripts"

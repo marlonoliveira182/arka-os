@@ -69,6 +69,17 @@ if [ "${1:-}" = "--uninstall" ]; then
     # Remove CLI commands
     [ -f "$HOME/.local/bin/arka" ] && rm "$HOME/.local/bin/arka" && echo -e "  ${GREEN}✓${NC} Removed arka CLI"
     [ -f "$HOME/.local/bin/arka-skill" ] && rm "$HOME/.local/bin/arka-skill" && echo -e "  ${GREEN}✓${NC} Removed arka-skill CLI"
+    [ -f "$HOME/.local/bin/arka-doctor" ] && rm "$HOME/.local/bin/arka-doctor" && echo -e "  ${GREEN}✓${NC} Removed arka-doctor CLI"
+
+    # Remove hooks from settings
+    if [ -f "$HOME/.claude/settings.json" ] && command -v jq &>/dev/null; then
+        jq 'del(.hooks)' "$HOME/.claude/settings.json" > "$HOME/.claude/settings.json.tmp" && \
+            mv "$HOME/.claude/settings.json.tmp" "$HOME/.claude/settings.json" && \
+            echo -e "  ${GREEN}✓${NC} Removed hooks from settings.json"
+    fi
+
+    # Remove session digests
+    [ -d "$HOME/.arka-os/session-digests" ] && rm -rf "$HOME/.arka-os/session-digests" && echo -e "  ${GREEN}✓${NC} Removed session digests"
 
     # Remove Pro content
     [ -d "$HOME/.arka-os/pro" ] && rm -rf "$HOME/.arka-os/pro" && echo -e "  ${GREEN}✓${NC} Removed Pro content"
@@ -265,8 +276,11 @@ cp "$SOURCE_DIR/bin/arka" "$HOME/.local/bin/arka"
 chmod +x "$HOME/.local/bin/arka"
 cp "$SOURCE_DIR/bin/arka-skill" "$HOME/.local/bin/arka-skill"
 chmod +x "$HOME/.local/bin/arka-skill"
+cp "$SOURCE_DIR/bin/arka-doctor" "$HOME/.local/bin/arka-doctor"
+chmod +x "$HOME/.local/bin/arka-doctor"
 echo -e "  ${GREEN}✓${NC} arka CLI installed to ~/.local/bin/arka"
 echo -e "  ${GREEN}✓${NC} arka-skill CLI installed to ~/.local/bin/arka-skill"
+echo -e "  ${GREEN}✓${NC} arka-doctor CLI installed to ~/.local/bin/arka-doctor"
 
 # Ensure ~/.local/bin is in PATH
 if ! echo "$PATH" | tr ':' '\n' | grep -q "$HOME/.local/bin"; then
@@ -825,23 +839,45 @@ else
     echo -e "  Run ${CYAN}bash pro-install.sh${NC} to install"
 fi
 
-# ─── Status Line ──────────────────────────────────────────────────────────
-echo -e "${BLUE}[Status Line]${NC}"
+# ─── Hooks ────────────────────────────────────────────────────────────────
+echo -e "${BLUE}[Hooks]${NC}"
+HOOKS_DEST="$SKILLS_DIR/arka/hooks"
+mkdir -p "$HOOKS_DEST"
+if [ -d "$SOURCE_DIR/config/hooks" ]; then
+    for hook_file in "$SOURCE_DIR"/config/hooks/*.sh; do
+        [ -f "$hook_file" ] || continue
+        cp "$hook_file" "$HOOKS_DEST/"
+        chmod +x "$HOOKS_DEST/$(basename "$hook_file")"
+        echo -e "  ${GREEN}✓${NC} $(basename "$hook_file")"
+    done
+else
+    echo -e "  ${YELLOW}⚠${NC} No hooks found in source"
+fi
+
+# ─── Settings (Status Line + Hooks) ──────────────────────────────────────
+echo -e "${BLUE}[Settings]${NC}"
 CLAUDE_SETTINGS="$HOME/.claude/settings.json"
 STATUSLINE_PATH="$SKILLS_DIR/arka/statusline.sh"
+HOOKS_DIR="$SKILLS_DIR/arka/hooks"
 
-if [ -f "$CLAUDE_SETTINGS" ] && command -v jq &>/dev/null; then
-    # Merge statusLine into existing settings
-    jq --arg cmd "$STATUSLINE_PATH" '.statusLine = {"type":"command","command":$cmd,"padding":2}' \
-        "$CLAUDE_SETTINGS" > "$CLAUDE_SETTINGS.tmp" && mv "$CLAUDE_SETTINGS.tmp" "$CLAUDE_SETTINGS"
-    echo -e "  ${GREEN}✓${NC} Status line configured (updated existing settings)"
-elif command -v jq &>/dev/null; then
-    # Create new settings file
-    jq -n --arg cmd "$STATUSLINE_PATH" '{"statusLine":{"type":"command","command":$cmd,"padding":2}}' \
-        > "$CLAUDE_SETTINGS"
-    echo -e "  ${GREEN}✓${NC} Status line configured (new settings file)"
+if command -v jq &>/dev/null; then
+    # Build ARKA settings from template with resolved paths
+    ARKA_SETTINGS=$(cat "$SOURCE_DIR/config/settings-template.json" 2>/dev/null | \
+        sed "s|{{STATUSLINE_PATH}}|$STATUSLINE_PATH|g" | \
+        sed "s|{{HOOKS_DIR}}|$HOOKS_DIR|g")
+
+    if [ -f "$CLAUDE_SETTINGS" ]; then
+        # Recursive merge: ARKA values update, user values preserved
+        jq -s '.[0] * .[1]' "$CLAUDE_SETTINGS" <(echo "$ARKA_SETTINGS") > "$CLAUDE_SETTINGS.tmp" && \
+            mv "$CLAUDE_SETTINGS.tmp" "$CLAUDE_SETTINGS"
+        echo -e "  ${GREEN}✓${NC} Status line + hooks merged into settings.json"
+    else
+        # Create new settings file
+        echo "$ARKA_SETTINGS" > "$CLAUDE_SETTINGS"
+        echo -e "  ${GREEN}✓${NC} Settings file created with status line + hooks"
+    fi
 else
-    echo -e "  ${YELLOW}⚠${NC} jq not found — add statusLine manually to ~/.claude/settings.json"
+    echo -e "  ${YELLOW}⚠${NC} jq not found — add statusLine and hooks manually to ~/.claude/settings.json"
 fi
 
 # ─── Environment Setup ───────────────────────────────────────────────────
@@ -880,6 +916,7 @@ echo -e "${BLUE}Quick Start:${NC}"
 echo -e "  ${CYAN}arka${NC}                           Open Claude with ARKA OS"
 echo -e "  ${CYAN}arka --version${NC}                 Show version"
 echo -e "  ${CYAN}arka update${NC}                    Update ARKA OS"
+echo -e "  ${CYAN}arka doctor${NC}                    Health check system"
 echo -e "  ${CYAN}/arka help${NC}                    Show all commands"
 echo -e "  ${CYAN}/arka standup${NC}                 Daily standup"
 echo -e "  ${CYAN}/dev scaffold laravel myapp${NC}   New Laravel project"
