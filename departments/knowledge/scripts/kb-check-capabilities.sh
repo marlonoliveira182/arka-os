@@ -23,12 +23,13 @@ check_binary() {
 
     if path=$(command -v "$name" 2>/dev/null); then
         case "$name" in
-            whisper)  version=$($path --version 2>&1 | head -1 || echo "unknown") ;;
+            whisper)  version=$(pip3 show openai-whisper 2>/dev/null | grep "^Version:" | cut -d' ' -f2 || echo "installed") ;;
             yt-dlp)   version=$($path --version 2>&1 | head -1 || echo "unknown") ;;
             ffmpeg)   version=$(ffmpeg -version 2>&1 | head -1 | sed 's/ffmpeg version //' | cut -d' ' -f1 || echo "unknown") ;;
             jq)       version=$($path --version 2>&1 || echo "unknown") ;;
             python3)  version=$($path --version 2>&1 | cut -d' ' -f2 || echo "unknown") ;;
         esac
+        version=$(printf '%s' "$version" | tr -d '\n\r' | tr -cd '[:print:]')
         printf '{"available":true,"path":"%s","version":"%s"}' "$path" "$version"
     else
         printf '{"available":false,"path":null,"version":null}'
