@@ -2,6 +2,28 @@
 
 ARKA OS is organized into 7 departments, each with specialized AI team members. This guide explains what each department does, who's on the team, and what you can accomplish.
 
+All agents follow the [CONSTITUTION.md](../CONSTITUTION.md) — a formal governance document with 3 enforcement levels (NON-NEGOTIABLE, MUST, SHOULD).
+
+### Agent Tier Hierarchy
+
+Every agent has a tier that defines their authority level:
+
+| Tier | Role | Agents |
+|------|------|--------|
+| 0 (Chief) | Veto power, final decisions | CTO Marco, CFO Helena, COO Sofia |
+| 1 (Lead) | Orchestrate, design, recommend | Tech Lead Paulo, Architect Gabriel, Luna, Ricardo, Tomas, Clara |
+| 2 (Specialist) | Implement within boundaries | Andre, Diana, Bruno, Carlos |
+| 3 (Support) | Validate, research, document | QA Rita, Analyst Lucas |
+
+Key authority rules:
+- Only **Carlos (DevOps)** can push to remote and deploy
+- Only **Tier 0 agents** (Marco, Helena, Sofia) can veto decisions
+- Only **Bruno (Security)** and **Rita (QA)** can block releases
+
+### Agent Memory
+
+Each agent has persistent memory at `~/.claude/agent-memory/arka-<name>/MEMORY.md` that survives across sessions. Agents record key decisions, recurring patterns, gotchas, and learned preferences. Memory files are never overwritten during updates.
+
 ---
 
 ## System — `/arka`
@@ -48,32 +70,32 @@ The Development department is an enterprise-grade team of 9 specialized agents t
 
 ### The Team
 
-**Marco — CTO**
-15 years of experience building SaaS products and APIs. Marco is the final technical authority — he makes architecture decisions, reviews code, and has veto power on any design. His priority order: security, scalability, maintainability, then speed.
+**Marco — CTO** `Tier 0`
+15 years of experience building SaaS products and APIs. Marco is the final technical authority — he makes architecture decisions, reviews code, and has veto power on any design. His priority order: security, scalability, maintainability, then speed. Authority: `veto`, `approve_architecture`, `approve_tech_stack`, `block_release`.
 
-**Paulo — Tech Lead (Orchestrator)**
-12 years leading engineering teams. Paulo doesn't write code — he orchestrates. He creates TODO lists before any work begins, manages workflow phases, coordinates the team, and writes final reports. Nothing starts without Paulo's plan.
+**Paulo — Tech Lead (Orchestrator)** `Tier 1`
+12 years leading engineering teams. Paulo doesn't write code — he orchestrates. He creates TODO lists before any work begins, manages workflow phases, coordinates the team, and writes final reports. Nothing starts without Paulo's plan. Authority: `orchestrate`, `assign_tasks`.
 
-**Gabriel — Software Architect**
-12 years designing systems. Gabriel designs before anyone builds — data flows, API contracts, component hierarchies, schema changes. He writes Architecture Decision Records (ADRs) to Obsidian and gets Marco's approval before implementation starts.
+**Gabriel — Software Architect** `Tier 1`
+12 years designing systems. Gabriel designs before anyone builds — data flows, API contracts, component hierarchies, schema changes. He writes Architecture Decision Records (ADRs) to Obsidian and gets Marco's approval before implementation starts. Authority: `design_architecture`, `create_adr`.
 
-**Andre — Senior Backend Developer**
-10 years building web applications. Andre is the backend builder — Laravel, PHP, PostgreSQL, API design. He reads existing code patterns before writing anything new, follows the implementation order (Migration → Model → Service → Controller → FormRequest → Resource → Routes), and always reads 2-3 similar files first.
+**Andre — Senior Backend Developer** `Tier 2`
+10 years building web applications. Andre is the backend builder — Laravel, PHP, PostgreSQL, API design. He reads existing code patterns before writing anything new, follows the implementation order (Migration → Model → Service → Controller → FormRequest → Resource → Routes), and always reads 2-3 similar files first. Authority: `implement`.
 
-**Diana — Senior Frontend Developer**
-8 years building user interfaces. Diana handles Vue 3, Nuxt 3, React, and Next.js. She thinks in components, demands pixel-perfect UIs, and never ships without loading states, error states, empty states, and accessibility (ARIA, keyboard nav).
+**Diana — Senior Frontend Developer** `Tier 2`
+8 years building user interfaces. Diana handles Vue 3, Nuxt 3, React, and Next.js. She thinks in components, demands pixel-perfect UIs, and never ships without loading states, error states, empty states, and accessibility (ARIA, keyboard nav). Authority: `implement`.
 
-**Bruno — Security Engineer**
-10 years in application security. Bruno runs OWASP Top 10 checks on every feature before it ships. He's professionally paranoid — every input is malicious until proven otherwise. Critical issues block shipping, period.
+**Bruno — Security Engineer** `Tier 2`
+10 years in application security. Bruno runs OWASP Top 10 checks on every feature before it ships. He's professionally paranoid — every input is malicious until proven otherwise. Critical issues block shipping, period. Authority: `block_release`, `security_audit`.
 
-**Rita — QA Lead**
-Rita breaks things — on purpose — and defines the quality bar. She designs test strategies, writes feature/unit/component tests, enforces quality gates (≥80% coverage, all tests green), and blocks shipping when criteria aren't met.
+**Rita — QA Lead** `Tier 3`
+Rita breaks things — on purpose — and defines the quality bar. She designs test strategies, writes feature/unit/component tests, enforces quality gates (≥80% coverage, all tests green), and blocks shipping when criteria aren't met. Authority: `block_release`, `validate`.
 
-**Carlos — DevOps Lead**
-9 years automating infrastructure. Carlos handles CI/CD pipelines, Docker, zero-downtime deployments, monitoring (Sentry), and environment management. If it can be automated, it will be.
+**Carlos — DevOps Lead** `Tier 2`
+9 years automating infrastructure. Carlos handles CI/CD pipelines, Docker, zero-downtime deployments, monitoring (Sentry), and environment management. If it can be automated, it will be. Authority: `push`, `deploy`, `manage_ci`. (Only agent with push/deploy permissions.)
 
-**Lucas — Technical Analyst**
-7 years in technical research. Lucas fetches up-to-date framework docs via Context7 MCP, searches the Obsidian KB for existing patterns, evaluates libraries, and documents everything. Every development session starts with his research.
+**Lucas — Technical Analyst** `Tier 3`
+7 years in technical research. Lucas fetches up-to-date framework docs via Context7 MCP, searches the Obsidian KB for existing patterns, evaluates libraries, and documents everything. Every development session starts with his research. Authority: `research`, `recommend`.
 
 ### Enterprise Workflow
 
@@ -172,8 +194,8 @@ The Marketing department creates content for every platform — social media, em
 
 ### The Team
 
-**Luna — Content Creator**
-Luna is a trend-aware content machine. She knows that Instagram is visual-first, LinkedIn is professional, TikTok needs to be raw and authentic, and X/Twitter demands brevity. She uses proven content frameworks — Hook-Story-Offer, Problem-Agitate-Solve, Before-After-Bridge — and adapts to whatever voice your brand needs.
+**Luna — Content Creator** `Tier 1`
+Luna is a trend-aware content machine. She knows that Instagram is visual-first, LinkedIn is professional, TikTok needs to be raw and authentic, and X/Twitter demands brevity. She uses proven content frameworks — Hook-Story-Offer, Problem-Agitate-Solve, Before-After-Bridge — and adapts to whatever voice your brand needs. Authority: `create_content`, `manage_campaigns`.
 
 ### What You Can Do
 
@@ -225,8 +247,8 @@ The E-commerce department helps you run and grow online stores. It can audit you
 
 ### The Team
 
-**Ricardo — E-commerce Manager**
-8 years scaling online stores to 7 figures. Ricardo is conversion-obsessed and data-driven. He analyzes stores by following the customer journey: traffic source, funnel steps, product pages, pricing, email flows, SEO, and customer lifetime value. Every recommendation comes with expected impact.
+**Ricardo — E-commerce Manager** `Tier 1`
+8 years scaling online stores to 7 figures. Ricardo is conversion-obsessed and data-driven. He analyzes stores by following the customer journey: traffic source, funnel steps, product pages, pricing, email flows, SEO, and customer lifetime value. Every recommendation comes with expected impact. Authority: `manage_store`, `pricing_decisions`.
 
 ### What You Can Do
 
@@ -275,8 +297,8 @@ The Finance department handles everything money-related — financial reports, b
 
 ### The Team
 
-**Helena — CFO**
-12 years of experience taking startups from seed to scale. Helena is conservative with money, obsessive about data, and speaks in clear numbers — no vague projections. She covers three roles: financial planning (budgets, cash flow, P&L), investment analysis (opportunity evaluation, portfolio review), and negotiation coaching (strategy, BATNA analysis, talking points).
+**Helena — CFO** `Tier 0`
+12 years of experience taking startups from seed to scale. Helena is conservative with money, obsessive about data, and speaks in clear numbers — no vague projections. She covers three roles: financial planning (budgets, cash flow, P&L), investment analysis (opportunity evaluation, portfolio review), and negotiation coaching (strategy, BATNA analysis, talking points). Authority: `veto`, `approve_budget`, `financial_decisions`.
 
 ### What You Can Do
 
@@ -326,8 +348,8 @@ The Operations department runs the day-to-day business — task management, emai
 
 ### The Team
 
-**Sofia — COO**
-10 years of operational excellence. Sofia is process-obsessed and calm under pressure. Her mantra: checklists over memory, templates over blanks, async over sync. She documents everything, automates what she can, and creates systems that run themselves.
+**Sofia — COO** `Tier 0`
+10 years of operational excellence. Sofia is process-obsessed and calm under pressure. Her mantra: checklists over memory, templates over blanks, async over sync. She documents everything, automates what she can, and creates systems that run themselves. Authority: `veto`, `approve_operations`, `cross_department`.
 
 ### What You Can Do
 
@@ -386,8 +408,8 @@ The Strategy department helps you think bigger — market analysis, brainstormin
 
 ### The Team
 
-**Tomas — Chief Strategist**
-Ex-management consultant who thinks in frameworks — Porter's Five Forces, Blue Ocean Strategy, Jobs-to-be-Done. Tomas blends data with intuition, plays devil's advocate, and spots connections others miss. During brainstorms, he argues from 5 different perspectives (visionary, pragmatist, skeptic, customer, analyst) and then synthesizes everything into a clear recommendation.
+**Tomas — Chief Strategist** `Tier 1`
+Ex-management consultant who thinks in frameworks — Porter's Five Forces, Blue Ocean Strategy, Jobs-to-be-Done. Tomas blends data with intuition, plays devil's advocate, and spots connections others miss. During brainstorms, he argues from 5 different perspectives (visionary, pragmatist, skeptic, customer, analyst) and then synthesizes everything into a clear recommendation. Authority: `strategic_planning`, `market_analysis`.
 
 ### What You Can Do
 
@@ -444,8 +466,8 @@ The Knowledge Base department turns content into usable expertise. Feed it a You
 
 ### The Team
 
-**Clara — Knowledge Curator**
-Former research librarian turned AI knowledge architect. Clara is analytical, systematic, and quality-obsessed. She doesn't just summarize — she decomposes content into actionable frameworks, identifies voice patterns, and builds connections between different sources. Her rule: everything must be attributed, nothing is deleted (only merged), and contradictions between sources are valuable.
+**Clara — Knowledge Curator** `Tier 1`
+Former research librarian turned AI knowledge architect. Clara is analytical, systematic, and quality-obsessed. She doesn't just summarize — she decomposes content into actionable frameworks, identifies voice patterns, and builds connections between different sources. Her rule: everything must be attributed, nothing is deleted (only merged), and contradictions between sources are valuable. Authority: `manage_knowledge`, `create_personas`.
 
 ### What You Can Do
 
@@ -501,3 +523,40 @@ Departments aren't isolated — they share context and can reference each other'
 - **E-commerce + Marketing:** Ricardo and Luna can collaborate on product launch content
 
 Everything flows through your Obsidian vault, so context is always available across departments.
+
+---
+
+## Constitution & Governance
+
+All departments are governed by `CONSTITUTION.md` — a formal set of rules with 3 enforcement levels:
+
+- **NON-NEGOTIABLE** — Worktree isolation, Obsidian output, authority boundaries, security gate, context-first. These cannot be bypassed.
+- **MUST** — Conventional commits, test coverage, pattern matching, actionable output, memory persistence. Violations are flagged.
+- **SHOULD** — Research before building, self-critique, KB contribution, complexity assessment. Best practices.
+
+---
+
+## Contextual Intelligence
+
+ARKA OS automatically injects context into every prompt via hooks:
+
+1. **Constitution rules** — Compressed governance rules are included in every interaction
+2. **Department detection** — Your prompt is analyzed to detect which department is relevant
+3. **Agent memory** — If an agent is mentioned, their relevant gotchas are surfaced
+4. **Project context** — If you're in a known project directory, project info is injected
+5. **Worktree awareness** — Active git worktree branch is detected
+6. **Error patterns** — Recurring errors for the detected department are surfaced
+7. **Time context** — Morning, afternoon, or evening
+
+This happens automatically via the `UserPromptSubmit` hook in under 200ms.
+
+---
+
+## Error Tracking
+
+ARKA OS tracks recurring errors across all departments via the `PostToolUse` hook:
+
+- Every tool error (non-zero exit code, error patterns in output) is captured
+- Errors are normalized, categorized (laravel, frontend, git, database, permissions, testing), and stored
+- The top errors are surfaced in the context injection so agents can avoid known pitfalls
+- View tracked errors with `arka gotchas` in the terminal

@@ -4,7 +4,7 @@
 
 ## Version
 
-- **Current:** 0.3.0
+- **Current:** 0.4.0
 - **Version file:** `VERSION`
 - **Auto-update:** `version-check.sh` checks for updates once per 24h
 - **Update:** Run `arka update` or `cd <repo> && git pull && bash install.sh`
@@ -44,9 +44,13 @@ ARKA OS installs a global `arka` command:
 | `arka kb status [job-id]` | Check KB job status (no Claude Code needed) |
 | `arka kb capabilities` | Show available tools and API keys |
 | `arka kb cleanup` | Remove old media files |
-| `arka doctor` | Run health check system (12 checks) |
+| `arka doctor` | Run health check system (15 checks) |
 | `arka doctor --fix` | Run health checks with auto-repair |
 | `arka doctor --json` | Output health checks as JSON |
+| `arka gotchas` | Show top 10 recurring errors |
+| `arka gotchas clear` | Reset gotchas tracking |
+| `arka gotchas --json` | JSON output of gotchas |
+| `arka test` | Run bats test suite |
 
 ## Tech Stack (Default)
 
@@ -321,17 +325,71 @@ Two-line color-coded display showing session context and metrics:
 
 Config: `config/statusline.sh`
 
+## Constitution
+
+`CONSTITUTION.md` defines governance rules with 3 enforcement levels:
+
+- **NON-NEGOTIABLE** (5 rules): Worktree isolation, Obsidian output, authority boundaries, security gate, context-first
+- **MUST** (5 rules): Conventional commits, test coverage ≥80%, pattern matching, actionable output, memory persistence
+- **SHOULD** (4 rules): Research before building, self-critique, KB contribution, complexity assessment
+
+Compressed version injected as L0 context layer via UserPromptSubmit hook.
+
+## Agent Tier Hierarchy
+
+All 15 agents have tier assignments and authority matrices in their YAML frontmatter:
+
+| Tier | Role | Agents |
+|------|------|--------|
+| 0 (Chief) | Veto power, final decisions | CTO Marco, CFO Helena, COO Sofia |
+| 1 (Lead) | Orchestrate, design, recommend | Tech Lead Paulo, Architect Gabriel, Luna, Ricardo, Tomas, Clara |
+| 2 (Specialist) | Implement within boundaries | Andre, Diana, Bruno, Carlos |
+| 3 (Support) | Validate, research, document | QA Rita, Analyst Lucas |
+
+Authority fields: `veto`, `push`, `deploy`, `block_release`, `approve_architecture`, etc.
+
+## Agent Memory System
+
+Each agent has persistent memory at `~/.claude/agent-memory/arka-<name>/MEMORY.md`:
+
+- **Key Decisions** — Important decisions from sessions
+- **Recurring Patterns** — Code styles, user preferences, workflows
+- **Gotchas** — Errors encountered repeatedly + fixes
+- **Learned Preferences** — User and project preferences
+- **Project-Specific Notes** — Notes tied to specific projects
+
+Template: `config/agent-memory-template.md`
+Install creates 15 memory files, never overwrites existing ones.
+
 ## Hooks System
 
 ARKA OS uses Claude Code hooks for contextual intelligence:
 
-### UserPromptSubmit Hook
-Injects context per prompt (10s timeout):
-- **Active project detection** — if CWD matches a known project, injects `[Active Project: name]`
-- **Department routing hints** — signal word detection (build/code → dev, budget/invoice → fin, etc.)
-- **Time-of-day context** — morning/afternoon/evening
+### UserPromptSubmit Hook (5-Layer Context Injection)
+Injects 5 cached context layers per prompt (10s timeout, target <200ms):
 
+| Layer | Source | Content | Cache TTL |
+|-------|--------|---------|-----------|
+| L0 | `CONSTITUTION.md` | Compressed non-negotiable rules | 300s |
+| L1 | Signal word matching | Detected department name | None |
+| L2 | Agent memory files | Agent name + last 3 gotchas | 30s |
+| L3 | PROJECT.md / .project-path | Project name + stack info | 30s |
+| L4 | Git worktree detection | Active worktree branch | None |
+| + | `gotchas.json` | Top 2 recurring errors for department (count ≥3) | 30s |
+| + | `date +%H` | Time of day | None |
+
+Cache directory: `/tmp/arka-context-cache/`
 Config: `config/hooks/user-prompt-submit.sh`
+
+### PostToolUse Hook (Gotchas Memory)
+Tracks recurring errors from tool output (5s timeout):
+- Detects errors from exit code ≠ 0 or error patterns in output
+- Normalizes error patterns (removes timestamps, hashes)
+- Categorizes: laravel, frontend, git, database, permissions, testing, general
+- Stores in `~/.arka-os/gotchas.json` with `flock` for concurrent safety
+- Keeps top 100 gotchas sorted by count
+
+Config: `config/hooks/post-tool-use.sh`
 
 ### PreCompact Hook
 Saves session digest before context compaction (30s timeout):
@@ -342,9 +400,42 @@ Saves session digest before context compaction (30s timeout):
 
 Config: `config/hooks/pre-compact.sh`
 
+## Gotchas System
+
+Recurring error tracking across sessions:
+
+| Command | Description |
+|---------|-------------|
+| `arka gotchas` | Show top 10 recurring errors |
+| `arka gotchas clear` | Reset gotchas file |
+| `arka gotchas --json` | JSON output |
+
+Storage: `~/.arka-os/gotchas.json` — JSON array of pattern, category, count, first/last seen, projects.
+Populated automatically by the PostToolUse hook.
+
+## Install Manifest
+
+`~/.arka-os/install-manifest.json` tracks all installed files with SHA256 checksums:
+
+- Generated at end of `install.sh`
+- On update: compares checksums to detect user-customized files
+- Used by `arka doctor` (check 14) to verify installation integrity
+
+## Testing
+
+ARKA OS uses [bats-core](https://github.com/bats-core/bats-core) for testing:
+
+| Command | Description |
+|---------|-------------|
+| `arka test` | Run full test suite |
+| `bats tests/` | Run directly |
+
+Test files: `tests/cli.bats`, `tests/hooks.bats`, `tests/doctor.bats`, `tests/statusline.bats`
+CI: `.github/workflows/test.yml` (runs on push/PR to master)
+
 ## Doctor System
 
-`arka doctor [--fix] [--json]` — 12 modular health checks:
+`arka doctor [--fix] [--json]` — 15 modular health checks:
 
 | # | Check | Type | What |
 |---|-------|------|------|
@@ -360,6 +451,9 @@ Config: `config/hooks/pre-compact.sh`
 | 10 | `mcp-registry` | fail | MCP registry.json present |
 | 11 | `prerequisites` | warn | yt-dlp, ffmpeg, python3 |
 | 12 | `capabilities` | warn | capabilities.json < 7 days old |
+| 13 | `agent-memory` | warn | 15 agent memory files exist |
+| 14 | `install-manifest` | warn | Manifest exists and valid |
+| 15 | `gotchas` | warn | Gotchas file exists and is valid JSON |
 
 - `--fix` attempts auto-repair (profile, statusline, hooks, capabilities)
 - `--json` outputs JSON array for programmatic use
@@ -418,7 +512,11 @@ Cleanup: `/kb cleanup --older-than 90d` removes completed job media older than 9
 
 ## Memory System
 
+ARKA OS has a 4-layer memory architecture:
+
 - **Obsidian Vault** — Primary knowledge store (personas, topics, sources, reports)
+- **Agent Memory** — Per-agent persistent memory at `~/.claude/agent-memory/arka-<name>/MEMORY.md` (15 files, one per agent). Stores key decisions, recurring patterns, gotchas, learned preferences, and project-specific notes. Never overwritten on update.
+- **Gotchas** — Recurring error tracking at `~/.arka-os/gotchas.json`. Auto-populated by PostToolUse hook, surfaced via L0 context injection and `arka gotchas` CLI.
 - **Memory Bank MCP** — Persistent session-to-session memory
 - **projects/** — Project-specific context and decisions
 
@@ -461,10 +559,59 @@ These MCPs are part of the user's Claude Code environment, not managed by ARKA O
 | Google Drive | Document storage |
 | Canva | Visual design |
 
+## File Structure (v0.4.0)
+
+```
+arka-os/
+├── CLAUDE.md                         # System instructions (this file)
+├── CONSTITUTION.md                   # Governance rules (3 enforcement levels)
+├── VERSION                           # Semver version (0.4.0)
+├── install.sh                        # Installer (hooks fix, agent memory, manifest)
+├── bin/
+│   ├── arka                          # CLI wrapper (gotchas, test, doctor, kb)
+│   ├── arka-doctor                   # Health check (15 checks)
+│   └── arka-skill                    # External skill manager
+├── config/
+│   ├── settings-template.json        # Claude settings (statusLine + 3 hooks)
+│   ├── statusline.sh                 # Two-line status bar
+│   ├── system-prompt.sh              # Dynamic system prompt
+│   ├── agent-memory-template.md      # Per-agent memory template
+│   └── hooks/
+│       ├── user-prompt-submit.sh     # 5-layer context injection
+│       ├── post-tool-use.sh          # Gotchas error tracking
+│       └── pre-compact.sh            # Session digest preservation
+├── departments/
+│   ├── dev/agents/                   # 9 dev agents (cto, tech-lead, architect, ...)
+│   ├── finance/agents/cfo.md         # Helena
+│   ├── operations/agents/coo.md      # Sofia
+│   ├── marketing/agents/             # Luna
+│   ├── ecommerce/agents/             # Ricardo
+│   ├── strategy/agents/              # Tomas
+│   └── knowledge/agents/             # Clara
+├── tests/
+│   ├── helpers/setup.bash            # Common test helpers
+│   ├── cli.bats                      # CLI routing tests
+│   ├── hooks.bats                    # Hook contract tests
+│   ├── doctor.bats                   # Doctor check tests
+│   └── statusline.bats              # Status line tests
+├── .github/workflows/test.yml        # CI (bats-core on push/PR)
+└── docs/                             # User-facing documentation
+```
+
+**Runtime files (not in repo):**
+```
+~/.claude/agent-memory/arka-*/MEMORY.md   # 15 agent memory files
+~/.arka-os/gotchas.json                    # Recurring error patterns
+~/.arka-os/install-manifest.json           # SHA256 checksums of installed files
+~/.arka-os/capabilities.json               # Detected tools and API keys
+~/.arka-os/session-digests/                # Pre-compact session digests
+/tmp/arka-context-cache/                   # Hook layer caches (TTL-based)
+```
+
 ## How To Work
 
 1. **Starting a task:** Read relevant department skill + project CLAUDE.md
-2. **Making decisions:** Consult appropriate persona (CTO for tech, CFO for money)
+2. **Making decisions:** Consult appropriate persona (CTO for tech, CFO for money). Respect agent tier hierarchy — only Tier 0 can veto.
 3. **Learning something new:** Use `/kb learn` to add to knowledge base (→ Obsidian)
 4. **Creating a project:** Use `/dev scaffold` to bootstrap from real repos
 5. **Configuring MCPs:** Use `/dev mcp apply` for per-project MCP setup
@@ -472,3 +619,7 @@ These MCPs are part of the user's Claude Code environment, not managed by ARKA O
 7. **Messaging:** Use `/ops channel add` to configure, `/ops notify` to send
 8. **Cross-department work:** Skills can reference other departments
 9. **All output → Obsidian:** Every report, analysis, and document goes to the vault
+10. **Tracking errors:** Gotchas are auto-tracked by PostToolUse hook. Review with `arka gotchas`.
+11. **Running tests:** Use `arka test` to run the bats test suite
+12. **Health checks:** Use `arka doctor` to verify system integrity (15 checks)
+13. **Constitution:** All agents follow `CONSTITUTION.md` rules. NON-NEGOTIABLE rules cannot be bypassed.

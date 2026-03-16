@@ -44,7 +44,10 @@ This downloads ARKA OS and runs the installer automatically. It will:
 - Download the ARKA OS files to `~/.arka-os/repo`
 - Set up the `arka` command so you can use it from anywhere
 - Install all the department skills and AI team members
+- Create per-agent memory files for all 15 agents
 - Auto-detect your Obsidian vault and create folders for organizing output
+- Configure 3 Claude Code hooks (context injection, error tracking, session preservation)
+- Generate an install manifest with SHA256 checksums
 - Check which optional tools you have installed
 - Ask if you want to set up integrations (you can do this later)
 
@@ -74,7 +77,7 @@ source ~/.zshrc
 arka --version
 ```
 
-You should see something like: `ARKA OS v0.2.0`
+You should see something like: `0.4.0`
 
 ---
 
@@ -234,9 +237,12 @@ This removes:
 - The `arka` command
 - All installed skills and department files
 - ARKA OS configuration
+- Hooks from Claude Code settings
 
 It does **not** remove:
 - Your Obsidian vault content (that's yours to keep)
+- Agent memory files in `~/.claude/agent-memory/` (cross-session learning)
+- Gotchas tracking in `~/.arka-os/gotchas.json`
 - Integration keys in `~/.arka-os/.env`
 - The cloned repository (delete the `arka-os` folder manually)
 
@@ -303,6 +309,38 @@ sudo apt install jq
 
 ---
 
+### System health check
+
+Run a health check to make sure everything is properly configured:
+
+```bash
+arka doctor
+```
+
+This runs 15 checks — verifying CLI, hooks, agents, integrations, and more. Use `arka doctor --fix` to auto-repair common issues.
+
+### Check recurring errors
+
+ARKA OS automatically tracks errors you encounter across sessions:
+
+```bash
+arka gotchas
+```
+
+This shows the top 10 most frequent error patterns, organized by category (laravel, frontend, git, database, etc.).
+
+### Run tests
+
+Verify the installation is working correctly:
+
+```bash
+arka test
+```
+
+This runs the bats test suite covering CLI routing, hooks, doctor checks, and status line.
+
+---
+
 ## What's Next?
 
 | Want to... | Go to... |
@@ -313,3 +351,5 @@ sudo apt install jq
 | Install community skills | [External Skills Guide](EXTERNAL-SKILLS.md) |
 | Build a feature (isolated branch) | Run `/dev feature "description"` |
 | Create a new project | Run `/dev scaffold` and choose a type |
+| Check system health | Run `arka doctor` |
+| See recurring errors | Run `arka gotchas` |

@@ -69,6 +69,50 @@ case "${1:-}" in
     bash "$HOME/.local/bin/arka-doctor" "$@"
     exit $?
     ;;
+  gotchas)
+    shift
+    GOTCHAS_FILE="$HOME/.arka-os/gotchas.json"
+    case "${1:-}" in
+      clear)
+        echo '[]' > "$GOTCHAS_FILE"
+        echo "Gotchas cleared."
+        ;;
+      --json)
+        if [ -f "$GOTCHAS_FILE" ]; then
+          cat "$GOTCHAS_FILE"
+        else
+          echo '[]'
+        fi
+        ;;
+      *)
+        if [ ! -f "$GOTCHAS_FILE" ] || [ "$(jq 'length' "$GOTCHAS_FILE" 2>/dev/null)" = "0" ]; then
+          echo "No gotchas recorded yet."
+          exit 0
+        fi
+        echo ""
+        echo -e "\033[0;36m╔══════════════════════════════════════════════════╗\033[0m"
+        echo -e "\033[0;36m║\033[0m  \033[1mARKA OS Gotchas\033[0m — Recurring Error Patterns      \033[0;36m║\033[0m"
+        echo -e "\033[0;36m╚══════════════════════════════════════════════════╝\033[0m"
+        echo ""
+        jq -r '.[:10] | to_entries[] | "  \(.key + 1). [\(.value.category)] (×\(.value.count)) \(.value.pattern)\n     First: \(.value.first_seen) | Last: \(.value.last_seen)\n     Projects: \(.value.projects | join(", "))\n"' "$GOTCHAS_FILE" 2>/dev/null
+        TOTAL=$(jq 'length' "$GOTCHAS_FILE" 2>/dev/null || echo "0")
+        echo "  Total: $TOTAL gotcha(s) tracked"
+        echo ""
+        ;;
+    esac
+    exit 0
+    ;;
+  test)
+    shift
+    if command -v bats &>/dev/null; then
+      REPO_DIR="$(cat "$ARKA_OS/.repo-path" 2>/dev/null)"
+      bats "$REPO_DIR/tests/" "$@"
+    else
+      echo "Error: bats-core not installed. Install: brew install bats-core"
+      exit 1
+    fi
+    exit $?
+    ;;
   kb)
     shift
     SCRIPTS_DIR="$HOME/.claude/skills/arka-knowledge/scripts"

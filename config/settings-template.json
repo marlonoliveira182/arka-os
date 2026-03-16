@@ -26,6 +26,17 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{HOOKS_DIR}}/post-tool-use.sh",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   }
 }

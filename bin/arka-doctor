@@ -2,7 +2,7 @@
 # ============================================================================
 # ARKA OS — Doctor (Health Check System)
 # Usage: arka doctor [--fix] [--json]
-# 12 modular checks: fail = critical, warn = advisory
+# 15 modular checks: fail = critical, warn = advisory
 # ============================================================================
 set -euo pipefail
 
@@ -155,9 +155,11 @@ if [ "$FIX_MODE" = true ] && [ "$HOOKS_OK" = false ]; then
     HOOKS_JSON=$(jq -n \
       --arg ups "$HOOKS_DIR/user-prompt-submit.sh" \
       --arg pc "$HOOKS_DIR/pre-compact.sh" \
+      --arg ptu "$HOOKS_DIR/post-tool-use.sh" \
       '{
         "UserPromptSubmit": [{"hooks":[{"type":"command","command":$ups,"timeout":10}]}],
-        "PreCompact": [{"hooks":[{"type":"command","command":$pc,"timeout":30}]}]
+        "PreCompact": [{"hooks":[{"type":"command","command":$pc,"timeout":30}]}],
+        "PostToolUse": [{"hooks":[{"type":"command","command":$ptu,"timeout":5}]}]
       }')
     jq --argjson hooks "$HOOKS_JSON" '.hooks = $hooks' "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp" && \
       mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
@@ -262,6 +264,58 @@ if [ "$FIX_MODE" = true ] && [ "$CAPS_OK" = false ]; then
   fi
 fi
 run_check "capabilities" "warn" "$CAPS_DESC" "$CAPS_OK" "Run: arka kb capabilities"
+
+# ─── Check 13: Agent Memory ─────────────────────────────────────────────
+AMEM_OK=false
+AMEM_COUNT=0
+AMEM_DIR="$HOME/.claude/agent-memory"
+if [ -d "$AMEM_DIR" ]; then
+  for mem_dir in "$AMEM_DIR"/arka-*/MEMORY.md; do
+    [ -f "$mem_dir" ] && AMEM_COUNT=$((AMEM_COUNT + 1))
+  done
+fi
+AMEM_DESC="$AMEM_COUNT/15 agent memory files"
+if [ "$AMEM_COUNT" -ge 15 ]; then
+  AMEM_OK=true
+fi
+run_check "agent-memory" "warn" "$AMEM_DESC" "$AMEM_OK" "Run: bash install.sh"
+
+# ─── Check 14: Install Manifest ─────────────────────────────────────────
+MANIFEST_OK=false
+MANIFEST_DESC="Install manifest present"
+MANIFEST_FILE="$HOME/.arka-os/install-manifest.json"
+if [ -f "$MANIFEST_FILE" ]; then
+  if jq empty "$MANIFEST_FILE" 2>/dev/null; then
+    MANIFEST_VER=$(jq -r '.version // "?"' "$MANIFEST_FILE")
+    FILE_COUNT=$(jq '.files | length' "$MANIFEST_FILE" 2>/dev/null || echo "0")
+    MANIFEST_OK=true
+    MANIFEST_DESC="Install manifest v${MANIFEST_VER} ($FILE_COUNT files)"
+  else
+    MANIFEST_DESC="Install manifest corrupted"
+  fi
+fi
+run_check "install-manifest" "warn" "$MANIFEST_DESC" "$MANIFEST_OK" "Run: bash install.sh"
+
+# ─── Check 15: Gotchas ──────────────────────────────────────────────────
+GOTCHAS_OK=false
+GOTCHAS_DESC="Gotchas file present"
+GOTCHAS_FILE="$HOME/.arka-os/gotchas.json"
+if [ -f "$GOTCHAS_FILE" ]; then
+  if jq empty "$GOTCHAS_FILE" 2>/dev/null; then
+    GOTCHA_COUNT=$(jq 'length' "$GOTCHAS_FILE" 2>/dev/null || echo "0")
+    GOTCHAS_OK=true
+    GOTCHAS_DESC="Gotchas tracking ($GOTCHA_COUNT patterns)"
+  else
+    GOTCHAS_DESC="Gotchas file corrupted"
+  fi
+else
+  # Create empty gotchas file if missing (auto-fix always)
+  mkdir -p "$HOME/.arka-os"
+  echo '[]' > "$GOTCHAS_FILE"
+  GOTCHAS_OK=true
+  GOTCHAS_DESC="Gotchas file created (empty)"
+fi
+run_check "gotchas" "warn" "$GOTCHAS_DESC" "$GOTCHAS_OK" "Run: bash install.sh"
 
 # ─── Output ────────────────────────────────────────────────────────────────
 TOTAL=$((PASS_COUNT + WARN_COUNT + FAIL_COUNT))

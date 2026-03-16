@@ -367,6 +367,38 @@ for agent_file in "$SOURCE_DIR"/departments/*/agents/*.md; do
     fi
 done
 
+# ─── Agent Memory ──────────────────────────────────────────────────────────
+echo -e "${BLUE}[Agent Memory]${NC}"
+AGENT_MEMORY_DIR="$HOME/.claude/agent-memory"
+AGENT_MEMORY_TEMPLATE="$SOURCE_DIR/config/agent-memory-template.md"
+AGENT_MEMORY_COUNT=0
+AGENT_NAMES=("cto" "tech-lead" "architect" "senior-dev" "frontend-dev" "security" "devops" "qa" "analyst" "cfo" "coo" "content-creator" "ecommerce-manager" "strategist" "knowledge-curator")
+AGENT_DISPLAY_NAMES=("CTO Marco" "Tech Lead Paulo" "Architect Gabriel" "Senior Dev Andre" "Frontend Dev Diana" "Security Bruno" "DevOps Carlos" "QA Rita" "Analyst Lucas" "CFO Helena" "COO Sofia" "Content Creator Luna" "E-commerce Manager Ricardo" "Strategist Tomas" "Knowledge Curator Clara")
+
+if [ -f "$AGENT_MEMORY_TEMPLATE" ]; then
+    for i in "${!AGENT_NAMES[@]}"; do
+        agent="${AGENT_NAMES[$i]}"
+        display="${AGENT_DISPLAY_NAMES[$i]}"
+        mem_dir="$AGENT_MEMORY_DIR/arka-$agent"
+        mem_file="$mem_dir/MEMORY.md"
+        mkdir -p "$mem_dir"
+        if [ ! -f "$mem_file" ]; then
+            sed -e "s|{{AGENT_NAME}}|$agent|g" \
+                -e "s|{{AGENT_DISPLAY_NAME}}|$display|g" \
+                -e "s|{{DATE}}|$(date +%Y-%m-%d)|g" \
+                "$AGENT_MEMORY_TEMPLATE" > "$mem_file"
+            AGENT_MEMORY_COUNT=$((AGENT_MEMORY_COUNT + 1))
+        fi
+    done
+    if [ "$AGENT_MEMORY_COUNT" -gt 0 ]; then
+        echo -e "  ${GREEN}✓${NC} Created $AGENT_MEMORY_COUNT agent memory files"
+    else
+        echo -e "  ${GREEN}✓${NC} All $((${#AGENT_NAMES[@]})) agent memory files exist (preserved)"
+    fi
+else
+    echo -e "  ${YELLOW}⚠${NC} Agent memory template not found"
+fi
+
 # ─── MCP System ────────────────────────────────────────────────────────────
 echo -e "${BLUE}[MCP System]${NC}"
 mkdir -p "$SKILLS_DIR/arka/mcps/profiles" "$SKILLS_DIR/arka/mcps/stacks" "$SKILLS_DIR/arka/mcps/scripts"
@@ -866,18 +898,168 @@ if command -v jq &>/dev/null; then
         sed "s|{{STATUSLINE_PATH}}|$STATUSLINE_PATH|g" | \
         sed "s|{{HOOKS_DIR}}|$HOOKS_DIR|g")
 
+    # Validate template produced valid JSON
+    if [ -z "$ARKA_SETTINGS" ] || ! echo "$ARKA_SETTINGS" | jq empty 2>/dev/null; then
+        echo -e "  ${YELLOW}⚠${NC} Settings template produced invalid JSON — using field-by-field merge"
+        ARKA_SETTINGS=""
+    fi
+
     if [ -f "$CLAUDE_SETTINGS" ]; then
-        # Recursive merge: ARKA values update, user values preserved
-        jq -s '.[0] * .[1]' "$CLAUDE_SETTINGS" <(echo "$ARKA_SETTINGS") > "$CLAUDE_SETTINGS.tmp" && \
-            mv "$CLAUDE_SETTINGS.tmp" "$CLAUDE_SETTINGS"
-        echo -e "  ${GREEN}✓${NC} Status line + hooks merged into settings.json"
+        if [ -n "$ARKA_SETTINGS" ]; then
+            # Write ARKA settings to temp file to avoid process substitution issues
+            ARKA_SETTINGS_TMP=$(mktemp)
+            echo "$ARKA_SETTINGS" > "$ARKA_SETTINGS_TMP"
+            # Recursive merge: ARKA values update, user values preserved
+            if jq -s '.[0] * .[1]' "$CLAUDE_SETTINGS" "$ARKA_SETTINGS_TMP" > "$CLAUDE_SETTINGS.tmp" 2>/dev/null && \
+               jq empty "$CLAUDE_SETTINGS.tmp" 2>/dev/null; then
+                mv "$CLAUDE_SETTINGS.tmp" "$CLAUDE_SETTINGS"
+                echo -e "  ${GREEN}✓${NC} Status line + hooks merged into settings.json"
+            else
+                rm -f "$CLAUDE_SETTINGS.tmp"
+                echo -e "  ${YELLOW}⚠${NC} Merge failed — using field-by-field assignment"
+                ARKA_SETTINGS=""
+            fi
+            rm -f "$ARKA_SETTINGS_TMP"
+        fi
+
+        # Fallback: field-by-field assignment if merge failed or ARKA_SETTINGS empty
+        if [ -z "$ARKA_SETTINGS" ]; then
+            jq --arg cmd "$STATUSLINE_PATH" \
+               '.statusLine = {"type":"command","command":$cmd,"padding":2}' \
+               "$CLAUDE_SETTINGS" > "$CLAUDE_SETTINGS.tmp" && mv "$CLAUDE_SETTINGS.tmp" "$CLAUDE_SETTINGS"
+            jq --arg ups "$HOOKS_DIR/user-prompt-submit.sh" \
+               --arg pc "$HOOKS_DIR/pre-compact.sh" \
+               --arg ptu "$HOOKS_DIR/post-tool-use.sh" \
+               '.hooks.UserPromptSubmit = [{"hooks":[{"type":"command","command":$ups,"timeout":10}]}] |
+                .hooks.PreCompact = [{"hooks":[{"type":"command","command":$pc,"timeout":30}]}] |
+                .hooks.PostToolUse = [{"hooks":[{"type":"command","command":$ptu,"timeout":5}]}]' \
+               "$CLAUDE_SETTINGS" > "$CLAUDE_SETTINGS.tmp" && mv "$CLAUDE_SETTINGS.tmp" "$CLAUDE_SETTINGS"
+            echo -e "  ${GREEN}✓${NC} Status line + hooks applied via field assignment"
+        fi
+
+        # Post-merge verification: ensure hooks exist, force-apply if missing
+        if ! jq -e '.hooks.UserPromptSubmit' "$CLAUDE_SETTINGS" &>/dev/null; then
+            echo -e "  ${YELLOW}⚠${NC} Hooks missing after merge — force-applying..."
+            jq --arg ups "$HOOKS_DIR/user-prompt-submit.sh" \
+               --arg pc "$HOOKS_DIR/pre-compact.sh" \
+               --arg ptu "$HOOKS_DIR/post-tool-use.sh" \
+               '.hooks.UserPromptSubmit = [{"hooks":[{"type":"command","command":$ups,"timeout":10}]}] |
+                .hooks.PreCompact = [{"hooks":[{"type":"command","command":$pc,"timeout":30}]}] |
+                .hooks.PostToolUse = [{"hooks":[{"type":"command","command":$ptu,"timeout":5}]}]' \
+               "$CLAUDE_SETTINGS" > "$CLAUDE_SETTINGS.tmp" && mv "$CLAUDE_SETTINGS.tmp" "$CLAUDE_SETTINGS"
+            echo -e "  ${GREEN}✓${NC} Hooks force-applied"
+        fi
     else
         # Create new settings file
-        echo "$ARKA_SETTINGS" > "$CLAUDE_SETTINGS"
+        if [ -n "$ARKA_SETTINGS" ]; then
+            echo "$ARKA_SETTINGS" > "$CLAUDE_SETTINGS"
+        else
+            # Build from scratch with jq
+            jq -n --arg cmd "$STATUSLINE_PATH" \
+                  --arg ups "$HOOKS_DIR/user-prompt-submit.sh" \
+                  --arg pc "$HOOKS_DIR/pre-compact.sh" \
+                  --arg ptu "$HOOKS_DIR/post-tool-use.sh" \
+                  '{
+                    statusLine: {"type":"command","command":$cmd,"padding":2},
+                    hooks: {
+                      UserPromptSubmit: [{"hooks":[{"type":"command","command":$ups,"timeout":10}]}],
+                      PreCompact: [{"hooks":[{"type":"command","command":$pc,"timeout":30}]}],
+                      PostToolUse: [{"hooks":[{"type":"command","command":$ptu,"timeout":5}]}]
+                    }
+                  }' > "$CLAUDE_SETTINGS"
+        fi
         echo -e "  ${GREEN}✓${NC} Settings file created with status line + hooks"
     fi
 else
     echo -e "  ${YELLOW}⚠${NC} jq not found — add statusLine and hooks manually to ~/.claude/settings.json"
+fi
+
+# ─── Install Manifest ─────────────────────────────────────────────────────
+echo -e "${BLUE}[Install Manifest]${NC}"
+MANIFEST_FILE="$HOME/.arka-os/install-manifest.json"
+OLD_MANIFEST="$HOME/.arka-os/install-manifest.old.json"
+
+# Save old manifest for update comparison
+if [ -f "$MANIFEST_FILE" ] && [ "$INSTALL_MODE" = "update" ]; then
+    cp "$MANIFEST_FILE" "$OLD_MANIFEST"
+fi
+
+if command -v jq &>/dev/null; then
+    # Collect all installed files and their SHA256 checksums
+    MANIFEST_FILES='{}'
+    for f in \
+        "$SKILLS_DIR/arka/SKILL.md" \
+        "$SKILLS_DIR/arka/VERSION" \
+        "$SKILLS_DIR/arka/statusline.sh" \
+        "$SKILLS_DIR/arka/system-prompt.sh" \
+        "$SKILLS_DIR/arka/version-check.sh" \
+        "$HOME/.local/bin/arka" \
+        "$HOME/.local/bin/arka-skill" \
+        "$HOME/.local/bin/arka-doctor"
+    do
+        [ -f "$f" ] || continue
+        HASH=$(shasum -a 256 "$f" 2>/dev/null | cut -d' ' -f1 || echo "unknown")
+        REL_PATH=$(echo "$f" | sed "s|$HOME|~|")
+        MANIFEST_FILES=$(echo "$MANIFEST_FILES" | jq --arg k "$REL_PATH" --arg v "$HASH" '. + {($k): $v}')
+    done
+
+    # Add agent files
+    for agent_file in "$AGENTS_DIR"/arka-*.md; do
+        [ -f "$agent_file" ] || continue
+        HASH=$(shasum -a 256 "$agent_file" 2>/dev/null | cut -d' ' -f1 || echo "unknown")
+        REL_PATH=$(echo "$agent_file" | sed "s|$HOME|~|")
+        MANIFEST_FILES=$(echo "$MANIFEST_FILES" | jq --arg k "$REL_PATH" --arg v "$HASH" '. + {($k): $v}')
+    done
+
+    # Add hook files
+    for hook_file in "$SKILLS_DIR/arka/hooks/"*.sh; do
+        [ -f "$hook_file" ] || continue
+        HASH=$(shasum -a 256 "$hook_file" 2>/dev/null | cut -d' ' -f1 || echo "unknown")
+        REL_PATH=$(echo "$hook_file" | sed "s|$HOME|~|")
+        MANIFEST_FILES=$(echo "$MANIFEST_FILES" | jq --arg k "$REL_PATH" --arg v "$HASH" '. + {($k): $v}')
+    done
+
+    # Add department skill files
+    for skill_md in "$SKILLS_DIR"/arka-*/SKILL.md; do
+        [ -f "$skill_md" ] || continue
+        HASH=$(shasum -a 256 "$skill_md" 2>/dev/null | cut -d' ' -f1 || echo "unknown")
+        REL_PATH=$(echo "$skill_md" | sed "s|$HOME|~|")
+        MANIFEST_FILES=$(echo "$MANIFEST_FILES" | jq --arg k "$REL_PATH" --arg v "$HASH" '. + {($k): $v}')
+    done
+
+    FILE_COUNT=$(echo "$MANIFEST_FILES" | jq 'length')
+    jq -n \
+        --arg ver "$ARKA_VERSION" \
+        --arg date "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+        --arg mode "$INSTALL_MODE" \
+        --argjson files "$MANIFEST_FILES" \
+        '{
+            version: $ver,
+            installed_at: $date,
+            install_mode: $mode,
+            files: $files
+        }' > "$MANIFEST_FILE"
+    echo -e "  ${GREEN}✓${NC} Manifest written ($FILE_COUNT files tracked)"
+
+    # On update: check for user-customized files
+    if [ -f "$OLD_MANIFEST" ]; then
+        CUSTOMIZED=0
+        while IFS=$'\t' read -r key old_hash; do
+            EXPANDED_PATH=$(echo "$key" | sed "s|^~|$HOME|")
+            [ -f "$EXPANDED_PATH" ] || continue
+            CURRENT_HASH=$(shasum -a 256 "$EXPANDED_PATH" 2>/dev/null | cut -d' ' -f1)
+            if [ "$CURRENT_HASH" != "$old_hash" ]; then
+                # File was customized by user — already overwritten, note it
+                CUSTOMIZED=$((CUSTOMIZED + 1))
+            fi
+        done < <(jq -r '.files | to_entries[] | [.key, .value] | @tsv' "$OLD_MANIFEST" 2>/dev/null)
+        if [ "$CUSTOMIZED" -gt 0 ]; then
+            echo -e "  ${YELLOW}⚠${NC} $CUSTOMIZED file(s) had local changes (overwritten by update)"
+        fi
+        rm -f "$OLD_MANIFEST"
+    fi
+else
+    echo -e "  ${YELLOW}⚠${NC} jq not found — manifest not generated"
 fi
 
 # ─── Environment Setup ───────────────────────────────────────────────────

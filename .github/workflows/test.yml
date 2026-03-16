@@ -1,0 +1,32 @@
+name: Tests
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install bats-core
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bats
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Make scripts executable
+        run: |
+          chmod +x config/hooks/*.sh
+          chmod +x config/statusline.sh
+          chmod +x bin/arka
+          chmod +x bin/arka-doctor
+          chmod +x bin/arka-skill
+
+      - name: Run tests
+        run: bats tests/

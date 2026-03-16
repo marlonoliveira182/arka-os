@@ -17,16 +17,44 @@ ARKA OS has two types of commands:
 
 Run these directly in your terminal:
 
+### Core
+
 | Command | What It Does |
 |---------|-------------|
 | `arka` | Start ARKA OS (opens Claude Code with everything loaded) |
 | `arka --version` | Show the installed version number |
 | `arka update` | Update ARKA OS to the latest version |
+
+### Skills
+
+| Command | What It Does |
+|---------|-------------|
 | `arka skill install <url>` | Install an external skill from GitHub |
 | `arka skill list` | Show all installed external skills |
 | `arka skill remove <name>` | Uninstall an external skill |
 | `arka skill update <name>` | Update an external skill to its latest version |
 | `arka skill create <name>` | Create a new skill project from the template |
+
+### Knowledge Base
+
+| Command | What It Does |
+|---------|-------------|
+| `arka kb queue` | Show KB job queue (download/transcription status) |
+| `arka kb status [job-id]` | Check detailed status of a specific KB job |
+| `arka kb capabilities` | Show available tools and API keys for KB processing |
+| `arka kb cleanup` | Remove old completed media files |
+
+### Health & Diagnostics
+
+| Command | What It Does |
+|---------|-------------|
+| `arka doctor` | Run 15 health checks (CLI, hooks, agents, integrations, etc.) |
+| `arka doctor --fix` | Run checks and auto-repair common issues |
+| `arka doctor --json` | Output health check results as JSON |
+| `arka gotchas` | Show top 10 recurring error patterns |
+| `arka gotchas clear` | Reset all tracked error patterns |
+| `arka gotchas --json` | Output gotchas as JSON |
+| `arka test` | Run the bats test suite (37 tests) |
 
 ---
 
@@ -258,4 +286,7 @@ The most useful commands at a glance:
 | Brainstorm strategy | `/strat brainstorm <topic>` |
 | Learn from content | `/kb learn <source>` |
 | Send a message | `/ops notify <message>` |
+| Check system health | `arka doctor` (in terminal) |
+| See recurring errors | `arka gotchas` (in terminal) |
+| Run tests | `arka test` (in terminal) |
 | Update ARKA OS | `arka update` (in terminal) |
