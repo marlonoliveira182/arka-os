@@ -27,7 +27,8 @@ if [ ! -f "$SOURCE_DIR/VERSION" ]; then
     echo ""
     echo -e "${BLUE}Downloading ARKA OS...${NC}"
     if [ -d "$CLONE_DIR/.git" ]; then
-        git -C "$CLONE_DIR" pull --quiet
+        git -C "$CLONE_DIR" fetch --quiet origin
+        git -C "$CLONE_DIR" reset --hard origin/master --quiet
         echo -e "  ${GREEN}✓${NC} Updated existing download"
     else
         mkdir -p "$HOME/.arka-os"
