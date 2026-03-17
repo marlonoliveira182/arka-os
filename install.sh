@@ -585,16 +585,24 @@ elif [ ${#UNIQUE_VAULTS[@]} -gt 1 ]; then
         echo -e "    ${CYAN}$((i+1)))${NC} ${UNIQUE_VAULTS[$i]}"
     done
     echo ""
-    read -rp "$(echo -e "  ${BLUE}Pick a vault (1-${#UNIQUE_VAULTS[@]}), or press Enter to skip: ${NC}")" VAULT_CHOICE < /dev/tty
+    if [ -t 0 ] || [ -e /dev/tty ]; then
+        read -rp "$(echo -e "  ${BLUE}Pick a vault (1-${#UNIQUE_VAULTS[@]}), or press Enter to skip: ${NC}")" VAULT_CHOICE < /dev/tty 2>/dev/null
+    else
+        VAULT_CHOICE=""
+    fi
     if [ -n "$VAULT_CHOICE" ] && [ "$VAULT_CHOICE" -ge 1 ] 2>/dev/null && [ "$VAULT_CHOICE" -le ${#UNIQUE_VAULTS[@]} ] 2>/dev/null; then
         OBSIDIAN_VAULT="${UNIQUE_VAULTS[$((VAULT_CHOICE-1))]}"
         echo -e "  ${GREEN}✓${NC} Using vault: $OBSIDIAN_VAULT"
     else
-        echo -e "  ${YELLOW}⚠${NC} Skipped Obsidian vault selection"
+        echo -e "  ${YELLOW}⚠${NC} Skipped Obsidian vault selection (non-interactive)"
     fi
 else
     echo -e "  ${YELLOW}⚠${NC} No Obsidian vaults found automatically"
-    read -rp "$(echo -e "  ${BLUE}Enter your Obsidian vault path (or press Enter to skip): ${NC}")" MANUAL_VAULT < /dev/tty
+    if [ -t 0 ] || [ -e /dev/tty ]; then
+        read -rp "$(echo -e "  ${BLUE}Enter your Obsidian vault path (or press Enter to skip): ${NC}")" MANUAL_VAULT < /dev/tty 2>/dev/null
+    else
+        MANUAL_VAULT=""
+    fi
     if [ -n "$MANUAL_VAULT" ] && [ -d "$MANUAL_VAULT" ]; then
         OBSIDIAN_VAULT="$MANUAL_VAULT"
         echo -e "  ${GREEN}✓${NC} Using vault: $OBSIDIAN_VAULT"
@@ -1065,7 +1073,11 @@ fi
 
 # ─── Environment Setup ───────────────────────────────────────────────────
 echo ""
-read -rp "$(echo -e "${BLUE}Configure API keys for MCPs? (y/N): ${NC}")" SETUP_ENV < /dev/tty
+if [ -t 0 ] || [ -e /dev/tty ]; then
+    read -rp "$(echo -e "${BLUE}Configure API keys for MCPs? (y/N): ${NC}")" SETUP_ENV < /dev/tty 2>/dev/null || SETUP_ENV="N"
+else
+    SETUP_ENV="N"
+fi
 if [ "$SETUP_ENV" = "y" ] || [ "$SETUP_ENV" = "Y" ]; then
     bash "$SOURCE_DIR/env-setup.sh"
 fi
