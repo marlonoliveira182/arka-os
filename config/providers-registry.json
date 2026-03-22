@@ -1,0 +1,56 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "description": "External AI providers and models — extensible via 'arka providers add'"
+  },
+  "providers": {
+    "openai": {
+      "name": "OpenAI",
+      "base_url": "https://api.openai.com/v1",
+      "auth_env": "OPENAI_API_KEY",
+      "auth_header": "Authorization: Bearer",
+      "models": {
+        "gpt-image-1": { "type": "image", "description": "GPT Image 1 — latest" },
+        "dall-e-3": { "type": "image", "description": "DALL-E 3" }
+      }
+    },
+    "replicate": {
+      "name": "Replicate",
+      "base_url": "https://api.replicate.com/v1",
+      "auth_env": "REPLICATE_API_TOKEN",
+      "auth_header": "Authorization: Bearer",
+      "models": {
+        "black-forest-labs/flux-1.1-pro": { "type": "image", "description": "Flux 1.1 Pro" },
+        "stability-ai/sdxl": { "type": "image", "description": "Stable Diffusion XL" },
+        "minimax/video-01": { "type": "video", "description": "MiniMax Video" }
+      }
+    },
+    "fal": {
+      "name": "FAL",
+      "base_url": "https://fal.run",
+      "auth_env": "FAL_KEY",
+      "auth_header": "Authorization: Key",
+      "models": {
+        "fal-ai/flux-pro/v1.1": { "type": "image", "description": "Flux Pro via FAL" },
+        "fal-ai/kling-video/v2/master": { "type": "video", "description": "Kling Video v2" },
+        "fal-ai/runway-gen3/turbo/image-to-video": { "type": "video", "description": "Runway Gen3 Turbo" }
+      }
+    },
+    "openrouter": {
+      "name": "OpenRouter",
+      "base_url": "https://openrouter.ai/api/v1",
+      "auth_env": "OPENROUTER_API_KEY",
+      "auth_header": "Authorization: Bearer",
+      "models": {
+        "google/gemini-2.5-pro": { "type": "text", "description": "Gemini 2.5 Pro" },
+        "deepseek/deepseek-r1": { "type": "text", "description": "DeepSeek R1" },
+        "meta-llama/llama-4-maverick": { "type": "text", "description": "Llama 4 Maverick" }
+      }
+    }
+  },
+  "routing": {
+    "image-generation": ["openai/gpt-image-1", "openai/dall-e-3", "fal/fal-ai/flux-pro/v1.1", "replicate/black-forest-labs/flux-1.1-pro"],
+    "video-generation": ["fal/fal-ai/kling-video/v2/master", "fal/fal-ai/runway-gen3/turbo/image-to-video", "replicate/minimax/video-01"],
+    "text-completion": ["openrouter/google/gemini-2.5-pro", "openrouter/deepseek/deepseek-r1"]
+  }
+}

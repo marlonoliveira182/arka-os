@@ -1,0 +1,148 @@
+{
+  "fixes": [
+    {
+      "pattern_match": "SQLSTATE.*relation.*does not exist",
+      "category": "database",
+      "suggestion": "Table missing. Run: php artisan migrate",
+      "confidence": "high"
+    },
+    {
+      "pattern_match": "SQLSTATE.*no such table",
+      "category": "database",
+      "suggestion": "SQLite table missing. Run: php artisan migrate",
+      "confidence": "high"
+    },
+    {
+      "pattern_match": "Connection refused.*5432",
+      "category": "database",
+      "suggestion": "PostgreSQL not running. Start with: brew services start postgresql",
+      "confidence": "high"
+    },
+    {
+      "pattern_match": "Connection refused.*3306",
+      "category": "database",
+      "suggestion": "MySQL not running. Start with: brew services start mysql",
+      "confidence": "high"
+    },
+    {
+      "pattern_match": "SQLSTATE.*Access denied",
+      "category": "database",
+      "suggestion": "Database credentials wrong. Check DB_USERNAME and DB_PASSWORD in .env",
+      "confidence": "high"
+    },
+    {
+      "pattern_match": "npm ERR.*ERESOLVE",
+      "category": "frontend",
+      "suggestion": "Dependency conflict. Try: npm install --legacy-peer-deps",
+      "confidence": "high"
+    },
+    {
+      "pattern_match": "Cannot find module.*vue",
+      "category": "frontend",
+      "suggestion": "Vue dependency missing. Run: npm install",
+      "confidence": "high"
+    },
+    {
+      "pattern_match": "Vite manifest not found",
+      "category": "frontend",
+      "suggestion": "Frontend not built. Run: npm run build (or npm run dev for local)",
+      "confidence": "high"
+    },
+    {
+      "pattern_match": "Module not found",
+      "category": "frontend",
+      "suggestion": "Missing dependency. Run: npm install (or composer install for PHP)",
+      "confidence": "medium"
+    },
+    {
+      "pattern_match": "Out of memory|JavaScript heap",
+      "category": "frontend",
+      "suggestion": "Node ran out of memory. Increase limit: NODE_OPTIONS=--max-old-space-size=4096",
+      "confidence": "high"
+    },
+    {
+      "pattern_match": "Class.*not found",
+      "category": "laravel",
+      "suggestion": "Autoload stale. Run: composer dump-autoload",
+      "confidence": "high"
+    },
+    {
+      "pattern_match": "CSRF token mismatch",
+      "category": "laravel",
+      "suggestion": "Session expired or cache stale. Run: php artisan cache:clear && php artisan config:clear",
+      "confidence": "high"
+    },
+    {
+      "pattern_match": "Route \\[.*\\] not defined",
+      "category": "laravel",
+      "suggestion": "Route cache stale. Run: php artisan route:clear",
+      "confidence": "high"
+    },
+    {
+      "pattern_match": "View \\[.*\\] not found",
+      "category": "laravel",
+      "suggestion": "View path wrong or cache stale. Check path and run: php artisan view:clear",
+      "confidence": "medium"
+    },
+    {
+      "pattern_match": "Permission denied",
+      "category": "permissions",
+      "suggestion": "Insufficient file permissions. Check with: ls -la <path>. Fix with: chmod or chown",
+      "confidence": "medium"
+    },
+    {
+      "pattern_match": "EACCES",
+      "category": "permissions",
+      "suggestion": "Permission denied (Node/npm). Avoid sudo. Fix ownership: sudo chown -R $(whoami) ~/.npm",
+      "confidence": "medium"
+    },
+    {
+      "pattern_match": "ENOSPC",
+      "category": "general",
+      "suggestion": "Disk full or inotify limit reached. Free disk space or increase watchers: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf",
+      "confidence": "high"
+    },
+    {
+      "pattern_match": "ENOENT",
+      "category": "general",
+      "suggestion": "File or directory not found. Verify the path exists and is spelled correctly",
+      "confidence": "medium"
+    },
+    {
+      "pattern_match": "port.*already in use|Address already in use|EADDRINUSE",
+      "category": "general",
+      "suggestion": "Port occupied. Kill the process: lsof -ti:<port> | xargs kill -9",
+      "confidence": "high"
+    },
+    {
+      "pattern_match": "Merge conflict|CONFLICT.*Merge",
+      "category": "git",
+      "suggestion": "Merge conflict detected. Open conflicting files, resolve markers (<<<< ==== >>>>), then git add and commit",
+      "confidence": "high"
+    },
+    {
+      "pattern_match": "failed to push|rejected.*non-fast-forward",
+      "category": "git",
+      "suggestion": "Remote has changes. Pull first: git pull --rebase origin <branch>",
+      "confidence": "high"
+    },
+    {
+      "pattern_match": "fatal: not a git repository",
+      "category": "git",
+      "suggestion": "Not inside a git repo. Run: git init, or cd into the correct directory",
+      "confidence": "high"
+    },
+    {
+      "pattern_match": "PHPUnit.*Failed|Tests:.*failures",
+      "category": "testing",
+      "suggestion": "Test failures. Check assertions, fixtures, and database state. Run: php artisan migrate:fresh --seed --env=testing",
+      "confidence": "medium"
+    },
+    {
+      "pattern_match": "FAIL.*\\.test\\.|jest.*failed",
+      "category": "testing",
+      "suggestion": "Jest test failures. Check test expectations and mocks. Run: npx jest --clearCache if stale",
+      "confidence": "medium"
+    }
+  ]
+}

@@ -7,6 +7,18 @@
 
 input=$(cat)
 
+# ─── Performance Timing ──────────────────────────────────────────────────
+_HOOK_START=$(date +%s 2>/dev/null)
+_HOOK_START_NS=$(date +%s%N 2>/dev/null || echo "0")
+_hook_ms() {
+  local end_ns=$(date +%s%N 2>/dev/null || echo "0")
+  if [ "$_HOOK_START_NS" != "0" ] && [ "$end_ns" != "0" ] && [ ${#end_ns} -gt 10 ]; then
+    echo $(( (end_ns - _HOOK_START_NS) / 1000000 ))
+  else
+    echo $(( ($(date +%s) - _HOOK_START) * 1000 ))
+  fi
+}
+
 # Extract fields
 PROMPT=$(echo "$input" | jq -r '.prompt // ""' 2>/dev/null)
 CWD=$(echo "$input" | jq -r '.cwd // ""' 2>/dev/null)
@@ -49,6 +61,7 @@ L0=$(cache_get "constitution" 300) || {
   fi
 }
 [ -n "$L0" ] && CONTEXT_PARTS+=("$L0")
+_L0_MS=$(_hook_ms)
 
 # ─── L1: Department Routing (no cache — fast string match) ───────────────
 PROMPT_LOWER=$(echo "$PROMPT" | tr '[:upper:]' '[:lower:]')
@@ -68,8 +81,11 @@ elif echo "$PROMPT_LOWER" | grep -qE '\b(task|email|calendar|automate|meeting|wo
   DETECTED_DEPT="operations"
 elif echo "$PROMPT_LOWER" | grep -qE '\b(learn|persona|knowledge|youtube|transcribe|article|research)\b'; then
   DETECTED_DEPT="knowledge"
+elif echo "$PROMPT_LOWER" | grep -qE '\b(brand|logo|colors|palette|mockup|photoshoot|brand.?identity|brand.?guide|mood.?board|naming|positioning|visual.?design|motion.?design|brand.?video|social.?kit)\b'; then
+  DETECTED_DEPT="brand"
 fi
 [ -n "$DETECTED_DEPT" ] && CONTEXT_PARTS+=("[dept:$DETECTED_DEPT]")
+_L1_MS=$(( $(_hook_ms) - ${_L0_MS:-0} ))
 
 # ─── L2: Agent Memory (30s cache) ────────────────────────────────────────
 # Detect agent name from prompt
@@ -104,24 +120,44 @@ elif echo "$PROMPT_LOWER" | grep -qE '\btomas\b|strategist'; then
   DETECTED_AGENT="strategist"
 elif echo "$PROMPT_LOWER" | grep -qE '\bclara\b|knowledge.?curator'; then
   DETECTED_AGENT="knowledge-curator"
+elif echo "$PROMPT_LOWER" | grep -qE '\bvalentina\b|creative.?director'; then
+  DETECTED_AGENT="creative-director"
+elif echo "$PROMPT_LOWER" | grep -qE '\bmateus\b|brand.?strategist'; then
+  DETECTED_AGENT="brand-strategist"
+elif echo "$PROMPT_LOWER" | grep -qE '\bisabel\b|visual.?designer'; then
+  DETECTED_AGENT="visual-designer"
+elif echo "$PROMPT_LOWER" | grep -qE '\brafael\b|motion.?designer'; then
+  DETECTED_AGENT="motion-designer"
 fi
 
 if [ -n "$DETECTED_AGENT" ]; then
   AGENT_CACHE_KEY="agent-${DETECTED_AGENT}"
   AGENT_CTX=$(cache_get "$AGENT_CACHE_KEY" 30) || {
     AGENT_MEM="$HOME/.claude/agent-memory/arka-${DETECTED_AGENT}/MEMORY.md"
-    AGENT_CTX="[agent:$DETECTED_AGENT]"
+    AGENT_CTX="[agent:$DETECTED_AGENT"
+
+    # Inject DISC profile from agents-registry.json (fast jq lookup)
+    REPO_PATH=$(cat "$ARKA_OS/.repo-path" 2>/dev/null || echo "")
+    REGISTRY_FILE="$REPO_PATH/knowledge/agents-registry.json"
+    if [ -f "$REGISTRY_FILE" ] && command -v jq &>/dev/null; then
+      DISC_COMBO=$(jq -r --arg id "$DETECTED_AGENT" '.agents[] | select(.id == $id) | .disc.combination // ""' "$REGISTRY_FILE" 2>/dev/null)
+      [ -n "$DISC_COMBO" ] && AGENT_CTX+=" disc:$DISC_COMBO"
+    fi
+
     if [ -f "$AGENT_MEM" ]; then
       # Extract last 3 gotchas from agent memory
       GOTCHAS=$(sed -n '/^## Gotchas/,/^## /{ /^## Gotchas/d; /^## /d; /^$/d; p; }' "$AGENT_MEM" 2>/dev/null | head -3)
       if [ -n "$GOTCHAS" ]; then
-        AGENT_CTX="[agent:$DETECTED_AGENT gotchas: $(echo "$GOTCHAS" | tr '\n' '; ' | head -c 200)]"
+        AGENT_CTX+=" gotchas: $(echo "$GOTCHAS" | tr '\n' '; ' | head -c 200)"
       fi
     fi
+
+    AGENT_CTX+="]"
     cache_set "$AGENT_CACHE_KEY" "$AGENT_CTX"
   }
   CONTEXT_PARTS+=("$AGENT_CTX")
 fi
+_L2_MS=$(( $(_hook_ms) - ${_L0_MS:-0} - ${_L1_MS:-0} ))
 
 # ─── L3: Active Project (30s cache) ──────────────────────────────────────
 if [ -n "$CWD" ]; then
@@ -168,6 +204,7 @@ if [ -n "$CWD" ]; then
   }
   [ -n "$PROJECT_CTX" ] && CONTEXT_PARTS+=("$PROJECT_CTX")
 fi
+_L3_MS=$(( $(_hook_ms) - ${_L0_MS:-0} - ${_L1_MS:-0} - ${_L2_MS:-0} ))
 
 # ─── L4: Git Worktree Detection (no cache — fast check) ──────────────────
 if [ -n "$CWD" ] && [ -d "$CWD/.git" ] || [ -f "$CWD/.git" ] 2>/dev/null; then
@@ -177,6 +214,7 @@ if [ -n "$CWD" ] && [ -d "$CWD/.git" ] || [ -f "$CWD/.git" ] 2>/dev/null; then
     [ -n "$WT_BRANCH" ] && CONTEXT_PARTS+=("[worktree:$WT_BRANCH]")
   fi
 fi
+_L4_MS=$(( $(_hook_ms) - ${_L0_MS:-0} - ${_L1_MS:-0} - ${_L2_MS:-0} - ${_L3_MS:-0} ))
 
 # ─── Gotchas Injection (30s cache) ───────────────────────────────────────
 if [ -n "$DETECTED_DEPT" ]; then
@@ -185,18 +223,50 @@ if [ -n "$DETECTED_DEPT" ]; then
     GOTCHA_CTX=""
     GOTCHAS_FILE="$HOME/.arka-os/gotchas.json"
     if [ -f "$GOTCHAS_FILE" ] && command -v jq &>/dev/null; then
-      # Get top 2 recurring errors for this department with count >= 3
+      # Get top 2 recurring errors for this department with count >= 3 (include suggestions)
       TOP_GOTCHAS=$(jq -r --arg cat "$DETECTED_DEPT" \
-        '[.[] | select(.category == $cat and .count >= 3)] | sort_by(-.count) | .[0:2] | .[].pattern' \
+        '[.[] | select(.category == $cat and .count >= 3)] | sort_by(-.count) | .[0:2] | .[] |
+         if .suggestion then "\(.pattern) (x\(.count)) \u2192 \(.suggestion)" else "\(.pattern) (x\(.count))" end' \
         "$GOTCHAS_FILE" 2>/dev/null)
       if [ -n "$TOP_GOTCHAS" ]; then
-        GOTCHA_CTX="[gotchas:$DETECTED_DEPT $(echo "$TOP_GOTCHAS" | tr '\n' '; ' | head -c 200)]"
+        GOTCHA_CTX="[gotchas:$DETECTED_DEPT $(echo "$TOP_GOTCHAS" | tr '\n' '; ' | head -c 300)]"
       fi
     fi
     cache_set "$GOTCHA_CACHE_KEY" "$GOTCHA_CTX"
   }
   [ -n "$GOTCHA_CTX" ] && CONTEXT_PARTS+=("$GOTCHA_CTX")
 fi
+
+# ─── L5: Command Hint (30s cache) ────────────────────────────────────────
+# Fast keyword lookup against commands-registry for non-explicit prompts
+if [ -n "$PROMPT" ] && ! echo "$PROMPT" | grep -qE '^/(dev|mkt|ecom|fin|ops|strat|kb|arka|do) '; then
+  CMD_CACHE_KEY="cmdhint-$(echo "$PROMPT_LOWER" | md5 2>/dev/null || echo "$PROMPT_LOWER" | md5sum 2>/dev/null | cut -d' ' -f1)"
+  CMD_HINT=$(cache_get "$CMD_CACHE_KEY" 30) || {
+    CMD_HINT=""
+    REPO_PATH=$(cat "$ARKA_OS/.repo-path" 2>/dev/null || echo "")
+    REGISTRY="$REPO_PATH/knowledge/commands-registry.json"
+    if [ -f "$REGISTRY" ] && command -v jq &>/dev/null; then
+      # Extract words from prompt and match against registry keywords
+      CMD_HINT=$(jq -r --arg prompt "$PROMPT_LOWER" '
+        ($prompt | split(" ") | map(select(length > 2))) as $words |
+        [.commands[] |
+          {id, command, department,
+           score: ([.keywords[] | . as $kw |
+             if ($words | any(. == $kw)) then 2
+             elif ($words | join(" ") | test($kw)) then 3
+             else 0 end
+           ] | add // 0)}
+        ] | sort_by(-.score) | [.[:2][] | select(.score > 0)] |
+        if length > 0 then
+          map("[hint:\(.command)]") | join(" ")
+        else "" end
+      ' "$REGISTRY" 2>/dev/null)
+    fi
+    cache_set "$CMD_CACHE_KEY" "$CMD_HINT"
+  }
+  [ -n "$CMD_HINT" ] && CONTEXT_PARTS+=("$CMD_HINT")
+fi
+_L5_MS=$(( $(_hook_ms) - ${_L0_MS:-0} - ${_L1_MS:-0} - ${_L2_MS:-0} - ${_L3_MS:-0} - ${_L4_MS:-0} ))
 
 # ─── Time of Day (no cache) ──────────────────────────────────────────────
 HOUR=$(date +%H)
@@ -207,6 +277,22 @@ elif [ "$HOUR" -lt 18 ]; then
 else
   CONTEXT_PARTS+=("[time:evening]")
 fi
+
+# ─── Log Metrics ─────────────────────────────────────────────────────────
+_DURATION_MS=$(_hook_ms)
+METRICS_FILE="$HOME/.arka-os/hook-metrics.json"
+METRICS_LOCK="$HOME/.arka-os/hook-metrics.lock"
+mkdir -p "$HOME/.arka-os"
+(
+  if command -v flock &>/dev/null; then flock -w 2 200; else true; fi
+  [ ! -f "$METRICS_FILE" ] && echo '[]' > "$METRICS_FILE"
+  NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+  jq --argjson dur "$_DURATION_MS" --arg ts "$NOW" --arg hook "user-prompt-submit" \
+    --argjson l0 "${_L0_MS:-0}" --argjson l1 "${_L1_MS:-0}" --argjson l2 "${_L2_MS:-0}" \
+    --argjson l3 "${_L3_MS:-0}" --argjson l4 "${_L4_MS:-0}" --argjson l5 "${_L5_MS:-0}" \
+    '. += [{"hook": $hook, "duration_ms": $dur, "timestamp": $ts, "layers": {"L0": $l0, "L1": $l1, "L2": $l2, "L3": $l3, "L4": $l4, "L5": $l5}}] | .[-500:]' \
+    "$METRICS_FILE" > "$METRICS_FILE.tmp" 2>/dev/null && mv "$METRICS_FILE.tmp" "$METRICS_FILE"
+) 200>"$METRICS_LOCK" 2>/dev/null
 
 # ─── Output ───────────────────────────────────────────────────────────────
 if [ ${#CONTEXT_PARTS[@]} -gt 0 ]; then

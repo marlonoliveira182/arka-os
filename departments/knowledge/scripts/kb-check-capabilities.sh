@@ -86,7 +86,9 @@ cat > "$CAPS_FILE" << JSONEOF
   "api_keys": {
     "OPENAI_API_KEY": $(check_key OPENAI_API_KEY),
     "GEMINI_API_KEY": $(check_key GEMINI_API_KEY),
-    "OPENROUTER_API_KEY": $(check_key OPENROUTER_API_KEY)
+    "OPENROUTER_API_KEY": $(check_key OPENROUTER_API_KEY),
+    "REPLICATE_API_TOKEN": $(check_key REPLICATE_API_TOKEN),
+    "FAL_KEY": $(check_key FAL_KEY)
   },
   "transcription": {
     "method": "$transcription_method",
@@ -118,7 +120,7 @@ if [ -t 1 ]; then
 
     echo ""
     echo -e "${CYAN}API Keys:${NC}"
-    for key in OPENAI_API_KEY GEMINI_API_KEY OPENROUTER_API_KEY; do
+    for key in OPENAI_API_KEY GEMINI_API_KEY OPENROUTER_API_KEY REPLICATE_API_TOKEN FAL_KEY; do
         value="${!key:-}"
         if [ -n "$value" ] && [ ${#value} -ge 8 ]; then
             echo -e "  ${GREEN}✓${NC} $key (${value:0:6}***)"

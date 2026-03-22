@@ -315,7 +315,7 @@ chmod +x "$SKILLS_DIR/arka/statusline.sh"
 echo -e "  ${GREEN}✓${NC} arka (main orchestrator)"
 
 # ─── Department Skills ──────────────────────────────────────────────────────
-DEPARTMENTS=("dev" "marketing" "ecommerce" "finance" "operations" "strategy" "knowledge")
+DEPARTMENTS=("dev" "marketing" "ecommerce" "finance" "operations" "strategy" "knowledge" "brand")
 echo -e "${BLUE}[Departments]${NC}"
 for dept in "${DEPARTMENTS[@]}"; do
     if [ -f "$SOURCE_DIR/departments/$dept/SKILL.md" ]; then
@@ -374,8 +374,8 @@ echo -e "${BLUE}[Agent Memory]${NC}"
 AGENT_MEMORY_DIR="$HOME/.claude/agent-memory"
 AGENT_MEMORY_TEMPLATE="$SOURCE_DIR/config/agent-memory-template.md"
 AGENT_MEMORY_COUNT=0
-AGENT_NAMES=("cto" "tech-lead" "architect" "senior-dev" "frontend-dev" "security" "devops" "qa" "analyst" "cfo" "coo" "content-creator" "ecommerce-manager" "strategist" "knowledge-curator")
-AGENT_DISPLAY_NAMES=("CTO Marco" "Tech Lead Paulo" "Architect Gabriel" "Senior Dev Andre" "Frontend Dev Diana" "Security Bruno" "DevOps Carlos" "QA Rita" "Analyst Lucas" "CFO Helena" "COO Sofia" "Content Creator Luna" "E-commerce Manager Ricardo" "Strategist Tomas" "Knowledge Curator Clara")
+AGENT_NAMES=("cto" "tech-lead" "architect" "senior-dev" "frontend-dev" "security" "devops" "qa" "analyst" "cfo" "coo" "content-creator" "ecommerce-manager" "strategist" "knowledge-curator" "creative-director" "brand-strategist" "visual-designer" "motion-designer")
+AGENT_DISPLAY_NAMES=("CTO Marco" "Tech Lead Paulo" "Architect Gabriel" "Senior Dev Andre" "Frontend Dev Diana" "Security Bruno" "DevOps Carlos" "QA Rita" "Analyst Lucas" "CFO Helena" "COO Sofia" "Content Creator Luna" "E-commerce Manager Ricardo" "Strategist Tomas" "Knowledge Curator Clara" "Creative Director Valentina" "Brand Strategist Mateus" "Visual Designer Isabel" "Motion Designer Rafael")
 
 if [ -f "$AGENT_MEMORY_TEMPLATE" ]; then
     for i in "${!AGENT_NAMES[@]}"; do

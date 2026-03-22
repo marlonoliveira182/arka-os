@@ -104,30 +104,29 @@ if [ -n "$ACTIVE_PROJECTS" ]; then
     echo ""
 fi
 
-# Smart routing rules
+# Smart routing with /do promotion
 cat << 'ROUTING'
-## Smart Routing (Plain Text)
+## Universal Command — /do
 
-When the user types plain text instead of a slash command, classify their request and route to the appropriate department automatically.
+Instead of memorizing slash commands, just describe what you need:
 
-**Signal words → Department mapping:**
+| Instead of... | Just say... |
+|---------------|-------------|
+| `/dev feature "auth"` | "add user authentication" |
+| `/mkt social "AI"` | "create social posts about AI" |
+| `/ecom audit mystore.com` | "audit my online store" |
+| `/fin forecast 6` | "forecast revenue for 6 months" |
 
-| Signal Words | Department | Route To |
-|-------------|-----------|----------|
-| "build", "code", "feature", "fix", "bug", "deploy", "test", "refactor", "api", "database", "scaffold", "implement", "debug" | Development | `/dev` |
-| "post", "social", "content", "blog", "email campaign", "ads", "landing page", "SEO", "marketing", "copywrite", "newsletter" | Marketing | `/mkt` |
-| "store", "product", "pricing", "ecommerce", "shop", "listing", "catalog", "checkout", "cart" | E-commerce | `/ecom` |
-| "budget", "forecast", "invoice", "pitch", "invest", "financial", "revenue", "expense", "bank", "funding" | Finance | `/fin` |
-| "task", "meeting", "calendar", "automate", "schedule", "email" (non-campaign), "notify", "process", "workflow" | Operations | `/ops` |
-| "strategy", "brainstorm", "market analysis", "competitor", "SWOT", "evaluate idea", "plan", "roadmap", "vision" | Strategy | `/strat` |
-| "learn", "persona", "knowledge", "transcribe", "search knowledge", "youtube", "video" | Knowledge | `/kb` |
+You can also type `/do <anything>` to be explicit. Or use the department slash commands if you know them.
 
 **Routing behavior:**
-1. Classify the request using the signal words above
-2. Announce: "Routing to **{Department}** department..."
-3. Load the department's SKILL.md and execute the appropriate command
-4. If the request is ambiguous or spans multiple departments, ask the user which department they meant
-5. If no department matches, treat it as a general question and answer directly
+1. Load `knowledge/commands-registry.json` and match the user's request against command keywords and examples
+2. If high-confidence single match → announce the resolved command and execute
+3. If multiple matches → show numbered options and ask the user to pick
+4. If no match → treat as a general question and answer directly
+5. If the request explicitly uses a slash command → route directly to that department
+
+Type `/arka help` for the full command reference.
 
 ROUTING
 

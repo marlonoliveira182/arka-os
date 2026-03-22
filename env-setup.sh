@@ -69,6 +69,8 @@ SERVICE_KEYS=(
     "OPENAI_API_KEY|Go to platform.openai.com → API Keys"
     "GEMINI_API_KEY|Go to aistudio.google.com → API Keys"
     "OPENROUTER_API_KEY|Go to openrouter.ai → Dashboard → Keys"
+    "REPLICATE_API_TOKEN|Go to replicate.com → Account → API Tokens"
+    "FAL_KEY|Go to fal.ai → Dashboard → Keys"
 )
 
 SERVICE_CONFIGURED=0

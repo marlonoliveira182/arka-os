@@ -1,0 +1,108 @@
+{
+  "version": "1.0.0",
+  "description": "DISC Behavioral Framework reference for ARKA OS agent system",
+  "profiles": {
+    "D": {
+      "name": "Dominant",
+      "axis": { "pace": "fast", "focus": "task" },
+      "communication": {
+        "style": "Direct, concise, bottom-line first",
+        "pace": "Fast — wants answers, not stories",
+        "format": "Bullet points, decisions, trade-off tables"
+      },
+      "motivators": ["Results", "Control", "Challenges", "Efficiency"],
+      "demotivators": ["Indecision", "Micromanagement", "Lack of autonomy", "Long meetings without outcomes"],
+      "under_pressure": "Becomes more demanding and directive. May bypass consensus to unblock. Centralizes authority.",
+      "feedback_style": {
+        "giving": "Direct and specific. Points to the problem, expects a fix.",
+        "receiving": "Wants facts and evidence. Show data, not feelings."
+      },
+      "conflict_style": "Confronts directly. States position with evidence. Expects counter-evidence.",
+      "decision_speed": "Fast — decides with 70% information, course-corrects later"
+    },
+    "I": {
+      "name": "Influential",
+      "axis": { "pace": "fast", "focus": "people" },
+      "communication": {
+        "style": "Enthusiastic, story-driven, collaborative",
+        "pace": "Fast — energetic, builds momentum through conversation",
+        "format": "Stories, examples, visual metaphors, analogies"
+      },
+      "motivators": ["Recognition", "Collaboration", "Creativity", "New ideas"],
+      "demotivators": ["Isolation", "Rigid rules", "Repetitive work", "Being ignored"],
+      "under_pressure": "Becomes overly optimistic or scattered. May over-promise. Seeks social validation.",
+      "feedback_style": {
+        "giving": "Positive first, then constructive. Uses encouragement and examples.",
+        "receiving": "Prefers public recognition for wins, private for corrections."
+      },
+      "conflict_style": "Persuades with enthusiasm and social proof. Seeks compromise that keeps relationships intact.",
+      "decision_speed": "Fast — decides based on intuition and team energy, refines later"
+    },
+    "S": {
+      "name": "Steady",
+      "axis": { "pace": "measured", "focus": "people" },
+      "communication": {
+        "style": "Calm, supportive, methodical",
+        "pace": "Measured — listens before responding, values thoroughness",
+        "format": "Structured documents, checklists, step-by-step guides"
+      },
+      "motivators": ["Stability", "Team harmony", "Clear processes", "Meaningful contribution"],
+      "demotivators": ["Sudden change", "Conflict", "Ambiguity", "Being rushed"],
+      "under_pressure": "Becomes passive or avoidant. May agree externally while disagreeing internally. Slows down.",
+      "feedback_style": {
+        "giving": "Gentle, diplomatic, sandwich approach. Focuses on improvement, not blame.",
+        "receiving": "Prefers private, constructive feedback with time to process."
+      },
+      "conflict_style": "Avoids confrontation. Seeks consensus. Mediates between opposing parties.",
+      "decision_speed": "Measured — needs time to consider impact on team and processes"
+    },
+    "C": {
+      "name": "Conscientious",
+      "axis": { "pace": "deliberate", "focus": "task" },
+      "communication": {
+        "style": "Precise, data-driven, structured",
+        "pace": "Deliberate — thorough analysis before speaking",
+        "format": "Structured reports, data tables, references, checklists"
+      },
+      "motivators": ["Accuracy", "Quality", "Expertise", "Logical systems"],
+      "demotivators": ["Sloppy work", "Rushed decisions", "Lack of data", "Emotional arguments"],
+      "under_pressure": "Becomes overly cautious or analysis-paralysis. May withdraw to research more. Raises more objections.",
+      "feedback_style": {
+        "giving": "Detailed and specific with references. Points to standards and best practices.",
+        "receiving": "Wants detailed, factual feedback with evidence and examples."
+      },
+      "conflict_style": "Presents thorough analysis. Argues with data and precedent. May disengage if opponent uses emotion over logic.",
+      "decision_speed": "Deliberate — needs sufficient data and analysis time before committing"
+    }
+  },
+  "combinations": {
+    "D+C": { "label": "Driver-Analyst", "description": "Results-driven with high standards. Demands quality AND speed. Makes fast decisions backed by data." },
+    "D+I": { "label": "Driver-Inspirer", "description": "Action-oriented leader who motivates through vision. Pushes for results while keeping team engaged." },
+    "I+S": { "label": "Inspirer-Supporter", "description": "People-first collaborator. Builds team cohesion through enthusiasm and genuine care." },
+    "I+D": { "label": "Inspirer-Driver", "description": "Energetic visionary who pushes ideas to execution. Big-picture thinker with urgency." },
+    "I+C": { "label": "Inspirer-Analyst", "description": "Creative thinker with attention to detail. Combines enthusiasm with precision." },
+    "S+C": { "label": "Supporter-Analyst", "description": "Methodical and caring. Ensures quality through careful, process-driven work." },
+    "S+I": { "label": "Supporter-Inspirer", "description": "Warm team player who values harmony and collaboration. Builds bridges between people." },
+    "C+D": { "label": "Analyst-Driver", "description": "Quality-first executor. Designs thoroughly then drives implementation with discipline." },
+    "C+S": { "label": "Analyst-Supporter", "description": "Careful, reliable specialist. Produces high-quality work with steady consistency." },
+    "C+I": { "label": "Analyst-Inspirer", "description": "Research-oriented communicator. Deep analysis presented in engaging, accessible ways." }
+  },
+  "team_balance": {
+    "ideal_distribution": {
+      "D": { "min": 15, "max": 25, "label": "Dominant" },
+      "I": { "min": 20, "max": 30, "label": "Influential" },
+      "S": { "min": 20, "max": 30, "label": "Steady" },
+      "C": { "min": 25, "max": 35, "label": "Conscientious" }
+    },
+    "warnings": {
+      "too_few_D": "Lack of decisive leadership. Team may struggle with fast decisions and direction.",
+      "too_many_D": "Power conflicts. Multiple strong drivers competing for control.",
+      "too_few_I": "Low team energy and collaboration. Risk of siloed work.",
+      "too_many_I": "All talk, no execution. Too many ideas without follow-through.",
+      "too_few_S": "Lack of team stability and process continuity. Risk of burnout.",
+      "too_many_S": "Resistance to change. Team may be too cautious and slow to adapt.",
+      "too_few_C": "Quality issues. Decisions made without sufficient analysis.",
+      "too_many_C": "Analysis paralysis. Excessive deliberation slows delivery."
+    }
+  }
+}

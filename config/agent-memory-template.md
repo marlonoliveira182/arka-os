@@ -19,6 +19,10 @@
 
 *User and project preferences discovered during work.*
 
+## DISC Interactions
+
+*Notes on how DISC profile affects collaboration with other agents. Communication adjustments, conflict resolution outcomes, and team dynamics observations.*
+
 ## Project-Specific Notes
 
 *Notes tied to specific projects.*

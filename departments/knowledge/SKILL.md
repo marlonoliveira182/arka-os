@@ -181,6 +181,14 @@ Launch these analysis agents simultaneously using the Task tool:
 - How does it relate to existing topics in the knowledge base?
 - What keywords and categories apply?
 
+**Agent 6: DISC Behavioral Profiler**
+- What is the likely DISC profile of this person, based on the content?
+- Pace: fast decisions (D/I) or deliberate/measured (S/C)?
+- Focus: tasks/results (D/C) or people/relationships (I/S)?
+- How do they handle disagreement in the content? (confront=D, persuade=I, avoid=S, analyze=C)
+- What linguistic patterns indicate the profile? (imperative=D, enthusiasm=I, caution=S, data-heavy=C)
+- Secondary profile and confidence level (high/medium/low) with supporting evidence
+
 ### Step 6: Write to Obsidian
 
 **Create/Update Persona** — same format as before:
@@ -210,6 +218,27 @@ tags:
 ## Voice & Style
 
 [From Agent 3 analysis — how they communicate, tone, patterns]
+
+## Behavioral Profile (DISC)
+
+> **Primary:** {X} ({name}) | **Secondary:** {Y} ({name}) | **Confidence:** {level}
+
+[From Agent 6 analysis — DISC behavioral profile]
+
+### Communication Patterns
+- **Pace:** {observed from content}
+- **Focus:** {task vs people}
+- **Decision speed:** {how they advocate for action}
+
+### How to Create Content as This Persona
+- **Tone calibration:** {specific instructions based on DISC}
+- **Opening pattern:** {how to start content in their style, DISC-informed}
+- **Argument structure:** {how they build arguments}
+- **Call-to-action style:** {how they close}
+
+### DISC Evidence
+- "{quote supporting primary profile}"
+- "{quote supporting secondary profile}"
 
 ## Core Philosophy
 

@@ -14,7 +14,7 @@
 - **Company:** WizardingCode
 - **System:** ARKA OS
 - **Owner:** Andrea Groferreira
-- **Purpose:** AI-augmented company operating system that manages development, marketing, e-commerce, finance, operations, and strategy through specialized departments and personas
+- **Purpose:** AI-augmented company operating system that manages development, marketing, e-commerce, finance, operations, strategy, and brand through specialized departments and personas
 
 ## Core Principles
 
@@ -50,6 +50,17 @@ ARKA OS installs a global `arka` command:
 | `arka gotchas` | Show top 10 recurring errors |
 | `arka gotchas clear` | Reset gotchas tracking |
 | `arka gotchas --json` | JSON output of gotchas |
+| `arka commands` | List all available commands from registry |
+| `arka commands rebuild` | Regenerate commands registry |
+| `arka commands --json` | JSON output of commands registry |
+| `arka team-balance` | Show DISC team balance distribution |
+| `arka providers` | List all AI providers + models + configured status |
+| `arka providers add <id>` | Add new provider (interactive) |
+| `arka providers remove <id>` | Remove a provider |
+| `arka providers add-model <provider> <model-id>` | Add model to existing provider |
+| `arka providers add-key <ENV_VAR>` | Configure API key in ~/.arka-os/.env |
+| `arka providers routing` | Show current routing chains |
+| `arka providers --json` | JSON output |
 | `arka test` | Run bats test suite |
 
 ## Tech Stack (Default)
@@ -112,10 +123,25 @@ Every new Laravel project MUST install these in order:
 
 Config: `mcps/stacks/laravel-packages.json`
 
+## Universal Orchestrator (/do)
+
+Users don't need to memorize slash commands. Just describe what you need:
+- "add user auth" → resolves to `/dev feature "user auth"`
+- "create posts about AI" → resolves to `/mkt social "AI"`
+- "audit my store" → resolves to `/ecom audit`
+
+The `/do` command reads `knowledge/commands-registry.json` (generated from all SKILL.md files) to resolve natural language to the exact command. Plain text input uses the same resolution — typing without a slash prefix is equivalent to `/do`.
+
+Key files:
+- `knowledge/commands-registry.json` — Generated catalog (~119 commands)
+- `knowledge/commands-keywords.json` — Hand-curated keyword/example data
+- `bin/arka-registry-gen` — Registry generator script
+
 ## Department Commands
 
 | Department | Prefix | Purpose |
 |-----------|--------|---------|
+| Universal | `/do` | Natural language → any command (universal orchestrator) |
 | Core System | `/arka` | System-level commands (standup, monitor, status, onboard) |
 | Development | `/dev` | Code, build, deploy, review, scaffold, plan, security-audit, research, onboard, MCP management, ecosystems, external skills |
 | Marketing | `/mkt` | Social media, content, affiliates, ads |
@@ -124,6 +150,7 @@ Config: `mcps/stacks/laravel-packages.json`
 | Operations | `/ops` | Automations, tasks, emails, calendar, messaging channels |
 | Strategy | `/strat` | Market analysis, brainstorming, planning |
 | Knowledge | `/kb` | Async content learning, transcription queue, personas, search knowledge |
+| Brand | `/brand` | Brand identity, colors, logos, mockups, photoshoots, videos, naming, positioning |
 
 ## Project Scaffolding
 
@@ -157,7 +184,7 @@ Onboarding runs a bundled Python script (`detect-stack.py`) that analyzes `compo
 ## MCP System
 
 ### Registry
-Central catalog of all MCPs at `mcps/registry.json` (21 MCPs).
+Central catalog of all MCPs at `mcps/registry.json` (22 MCPs).
 
 ### Profiles
 Pre-configured sets of MCPs applied per project type:
@@ -172,6 +199,7 @@ Pre-configured sets of MCPs applied per project type:
 | `nextjs` | base + next-devtools, supabase |
 | `ecommerce` | base + laravel-boost, serena, mirakl, shopify-dev |
 | `full-stack` | base + laravel-boost, serena, nuxt, nuxt-ui |
+| `brand` | base + canva |
 | `comms` | base + slack, discord, whatsapp, teams |
 
 ### Commands
@@ -185,6 +213,45 @@ Run `bash env-setup.sh` to interactively configure API keys for MCPs that requir
 
 ### How It Works
 `mcps/scripts/apply-mcps.sh` generates `.mcp.json` + `.claude/settings.local.json` in the target project.
+
+## Extensible AI Provider System
+
+ARKA OS includes an extensible provider registry for external AI services (image generation, video generation, text completion). Ships with 4 defaults but users can add ANY provider via CLI.
+
+**Registry:** `config/providers-registry.json`
+
+### Default Providers
+
+| Provider | Models | Auth Env |
+|----------|--------|----------|
+| OpenAI | gpt-image-1, dall-e-3 | `OPENAI_API_KEY` |
+| Replicate | flux-1.1-pro, sdxl, minimax-video | `REPLICATE_API_TOKEN` |
+| FAL | flux-pro, kling-video, runway-gen3 | `FAL_KEY` |
+| OpenRouter | gemini-2.5-pro, deepseek-r1, llama-4 | `OPENROUTER_API_KEY` |
+
+### Routing Chains
+
+Automatic fallback: picks the first provider with a configured API key.
+
+- **image-generation:** OpenAI → FAL → Replicate
+- **video-generation:** FAL → Replicate
+- **text-completion:** OpenRouter
+
+### CLI Commands
+
+| Command | Description |
+|---------|-------------|
+| `arka providers` | List all providers + models + configured status |
+| `arka providers add <id>` | Add new provider (interactive) |
+| `arka providers remove <id>` | Remove a provider |
+| `arka providers add-model <provider> <model-id>` | Add model to existing provider |
+| `arka providers add-key <ENV_VAR>` | Configure API key |
+| `arka providers routing` | Show routing chains |
+| `arka providers --json` | JSON output |
+
+### API Caller
+
+`departments/brand/scripts/provider-call.sh` — generic API caller that reads provider config, resolves routing chains, and makes provider-specific API calls. Supports OpenAI, Replicate, FAL, and any OpenAI-compatible API.
 
 ## Messaging Integration
 
@@ -211,7 +278,7 @@ Config: `knowledge/channels-config.json`
 ARKA OS has two tiers:
 
 ### Community (this repo)
-- 7 departments, 15 personas, 21 MCPs
+- 8 departments, 19 personas, 22 MCPs
 - Full scaffolding (9 types), MCP management, Obsidian integration
 - External skill system, CLI command, auto-updates
 
@@ -282,6 +349,7 @@ ALL department output goes to this Obsidian vault. No local knowledge files.
 | `/fin` | `WizardingCode/Finance/` |
 | `/ops` | `WizardingCode/Operations/` |
 | `/strat` | `WizardingCode/Strategy/` |
+| `/brand` | `WizardingCode/Brand/` |
 
 Config: `knowledge/obsidian-config.json`
 
@@ -337,16 +405,61 @@ Compressed version injected as L0 context layer via UserPromptSubmit hook.
 
 ## Agent Tier Hierarchy
 
-All 15 agents have tier assignments and authority matrices in their YAML frontmatter:
+All 19 agents have tier assignments and authority matrices in their YAML frontmatter:
 
 | Tier | Role | Agents |
 |------|------|--------|
 | 0 (Chief) | Veto power, final decisions | CTO Marco, CFO Helena, COO Sofia |
-| 1 (Lead) | Orchestrate, design, recommend | Tech Lead Paulo, Architect Gabriel, Luna, Ricardo, Tomas, Clara |
-| 2 (Specialist) | Implement within boundaries | Andre, Diana, Bruno, Carlos |
+| 1 (Lead) | Orchestrate, design, recommend | Tech Lead Paulo, Architect Gabriel, Luna, Ricardo, Tomas, Clara, Valentina |
+| 2 (Specialist) | Implement within boundaries | Andre, Diana, Bruno, Carlos, Mateus, Isabel, Rafael |
 | 3 (Support) | Validate, research, document | QA Rita, Analyst Lucas |
 
 Authority fields: `veto`, `push`, `deploy`, `block_release`, `approve_architecture`, etc.
+
+## DISC Behavioral Framework
+
+All 19 agents have DISC behavioral profiles in their YAML frontmatter (`disc:` block) and a "Behavioral Profile" section covering communication style, behavior under pressure, motivation, feedback style, and conflict approach.
+
+### DISC Profiles
+- **D (Dominant):** Fast-paced, task-focused, results-driven
+- **I (Influential):** Fast-paced, people-focused, enthusiasm-driven
+- **S (Steady):** Measured-pace, people-focused, stability-driven
+- **C (Conscientious):** Deliberate-pace, task-focused, quality-driven
+
+### Agent DISC Mapping
+
+| Agent | Primary | Secondary | Label |
+|-------|---------|-----------|-------|
+| Marco (CTO) | D | C | Driver-Analyst |
+| Paulo (Tech Lead) | I | S | Inspirer-Supporter |
+| Gabriel (Architect) | C | D | Analyst-Driver |
+| Andre (Backend) | C | S | Analyst-Supporter |
+| Diana (Frontend) | I | C | Inspirer-Analyst |
+| Bruno (Security) | C | D | Analyst-Driver |
+| Carlos (DevOps) | D | C | Driver-Analyst |
+| Rita (QA) | C | S | Analyst-Supporter |
+| Lucas (Analyst) | C | I | Analyst-Inspirer |
+| Helena (CFO) | D | C | Driver-Analyst |
+| Sofia (COO) | S | C | Supporter-Analyst |
+| Luna (Content) | I | D | Inspirer-Driver |
+| Ricardo (E-commerce) | D | I | Driver-Inspirer |
+| Tomas (Strategy) | I | D | Inspirer-Driver |
+| Clara (Knowledge) | S | C | Supporter-Analyst |
+| Valentina (Brand) | S | I | Supporter-Inspirer |
+| Mateus (Brand) | C | I | Analyst-Inspirer |
+| Isabel (Brand) | I | S | Inspirer-Supporter |
+| Rafael (Brand) | D | I | Driver-Inspirer |
+
+**Distribution:** D:5, I:5, S:3, C:6 — S improved from 13% to 16% with brand team.
+
+### Key Files
+- **Reference:** `config/disc-profiles.json` — 4 profiles, 10 combinations, team balance ideal ranges
+- **Registry:** `knowledge/agents-registry.json` — Machine-readable manifest of all 19 agents with DISC data
+- **Validator:** `config/disc-team-validator.sh` — Team balance checker
+- **CLI:** `arka team-balance` — Display team DISC distribution
+
+### Conflict Resolution (DISC-Informed)
+Defined in `CONSTITUTION.md`: D vs D (data wins), C vs C (thoroughness wins), D vs C (goal+method split), I vs S (pace compromise). Escalation: same dept → Tier 0, cross-dept → COO Sofia.
 
 ## Agent Memory System
 
@@ -365,8 +478,8 @@ Install creates 15 memory files, never overwrites existing ones.
 
 ARKA OS uses Claude Code hooks for contextual intelligence:
 
-### UserPromptSubmit Hook (5-Layer Context Injection)
-Injects 5 cached context layers per prompt (10s timeout, target <200ms):
+### UserPromptSubmit Hook (6-Layer Context Injection)
+Injects 6 cached context layers per prompt (10s timeout, target <200ms):
 
 | Layer | Source | Content | Cache TTL |
 |-------|--------|---------|-----------|
@@ -375,6 +488,7 @@ Injects 5 cached context layers per prompt (10s timeout, target <200ms):
 | L2 | Agent memory files | Agent name + last 3 gotchas | 30s |
 | L3 | PROJECT.md / .project-path | Project name + stack info | 30s |
 | L4 | Git worktree detection | Active worktree branch | None |
+| L5 | `commands-registry.json` | Command hints for non-slash prompts | 30s |
 | + | `gotchas.json` | Top 2 recurring errors for department (count ≥3) | 30s |
 | + | `date +%H` | Time of day | None |
 
@@ -430,7 +544,7 @@ ARKA OS uses [bats-core](https://github.com/bats-core/bats-core) for testing:
 | `arka test` | Run full test suite |
 | `bats tests/` | Run directly |
 
-Test files: `tests/cli.bats`, `tests/hooks.bats`, `tests/doctor.bats`, `tests/statusline.bats`
+Test files: `tests/cli.bats`, `tests/hooks.bats`, `tests/doctor.bats`, `tests/statusline.bats`, `tests/disc.bats`, `tests/orchestrator.bats`, `tests/brand.bats`
 CI: `.github/workflows/test.yml` (runs on push/PR to master)
 
 ## Doctor System
@@ -451,7 +565,7 @@ CI: `.github/workflows/test.yml` (runs on push/PR to master)
 | 10 | `mcp-registry` | fail | MCP registry.json present |
 | 11 | `prerequisites` | warn | yt-dlp, ffmpeg, python3 |
 | 12 | `capabilities` | warn | capabilities.json < 7 days old |
-| 13 | `agent-memory` | warn | 15 agent memory files exist |
+| 13 | `agent-memory` | warn | 19 agent memory files exist |
 | 14 | `install-manifest` | warn | Manifest exists and valid |
 | 15 | `gotchas` | warn | Gotchas file exists and is valid JSON |
 
@@ -522,7 +636,7 @@ ARKA OS has a 4-layer memory architecture:
 
 ## MCP Integrations
 
-### ARKA OS MCPs (managed by the system — 21 in registry)
+### ARKA OS MCPs (managed by the system — 22 in registry)
 
 | MCP | Category | Purpose |
 |-----|----------|---------|
@@ -547,6 +661,7 @@ ARKA OS has a 4-layer memory architecture:
 | Discord | comms | Discord bot and messaging |
 | WhatsApp | comms | WhatsApp Business API |
 | Teams | comms | Microsoft Teams messaging |
+| Canva | brand | Canva design platform — create, edit, export designs |
 
 ### External MCPs (user environment — available if configured)
 
@@ -568,16 +683,21 @@ arka-os/
 ├── VERSION                           # Semver version (0.4.0)
 ├── install.sh                        # Installer (hooks fix, agent memory, manifest)
 ├── bin/
-│   ├── arka                          # CLI wrapper (gotchas, test, doctor, kb)
+│   ├── arka                          # CLI wrapper (gotchas, test, doctor, kb, commands)
 │   ├── arka-doctor                   # Health check (15 checks)
+│   ├── arka-registry-gen             # Commands registry generator
+│   ├── arka-providers               # AI provider management CLI
 │   └── arka-skill                    # External skill manager
 ├── config/
 │   ├── settings-template.json        # Claude settings (statusLine + 3 hooks)
 │   ├── statusline.sh                 # Two-line status bar
 │   ├── system-prompt.sh              # Dynamic system prompt
 │   ├── agent-memory-template.md      # Per-agent memory template
+│   ├── disc-profiles.json            # DISC framework reference (4 profiles, combinations, balance)
+│   ├── disc-team-validator.sh        # Team DISC balance validator script
+│   ├── providers-registry.json      # Extensible AI provider/model catalog
 │   └── hooks/
-│       ├── user-prompt-submit.sh     # 5-layer context injection
+│       ├── user-prompt-submit.sh     # 6-layer context injection
 │       ├── post-tool-use.sh          # Gotchas error tracking
 │       └── pre-compact.sh            # Session digest preservation
 ├── departments/
@@ -587,20 +707,24 @@ arka-os/
 │   ├── marketing/agents/             # Luna
 │   ├── ecommerce/agents/             # Ricardo
 │   ├── strategy/agents/              # Tomas
-│   └── knowledge/agents/             # Clara
+│   ├── knowledge/agents/             # Clara
+│   └── brand/agents/                # Valentina, Mateus, Isabel, Rafael
 ├── tests/
 │   ├── helpers/setup.bash            # Common test helpers
 │   ├── cli.bats                      # CLI routing tests
 │   ├── hooks.bats                    # Hook contract tests
 │   ├── doctor.bats                   # Doctor check tests
-│   └── statusline.bats              # Status line tests
+│   ├── statusline.bats              # Status line tests
+│   ├── disc.bats                    # DISC framework tests
+│   ├── orchestrator.bats            # Universal orchestrator tests
+│   └── brand.bats                   # Brand department + provider tests
 ├── .github/workflows/test.yml        # CI (bats-core on push/PR)
 └── docs/                             # User-facing documentation
 ```
 
 **Runtime files (not in repo):**
 ```
-~/.claude/agent-memory/arka-*/MEMORY.md   # 15 agent memory files
+~/.claude/agent-memory/arka-*/MEMORY.md   # 19 agent memory files
 ~/.arka-os/gotchas.json                    # Recurring error patterns
 ~/.arka-os/install-manifest.json           # SHA256 checksums of installed files
 ~/.arka-os/capabilities.json               # Detected tools and API keys

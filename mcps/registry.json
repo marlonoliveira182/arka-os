@@ -186,6 +186,13 @@
       "category": "comms",
       "description": "Microsoft Teams messaging integration",
       "required_env": ["TEAMS_APP_ID", "TEAMS_APP_SECRET"]
+    },
+    "canva": {
+      "type": "http",
+      "url": "https://mcp.canva.com/mcp",
+      "category": "brand",
+      "description": "Canva design platform — create, edit, export designs, manage brand kits",
+      "required_env": []
     }
   }
 }

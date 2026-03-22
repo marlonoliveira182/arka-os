@@ -7,6 +7,18 @@
 
 input=$(cat)
 
+# ─── Performance Timing ──────────────────────────────────────────────────
+_HOOK_START=$(date +%s 2>/dev/null)
+_HOOK_START_NS=$(date +%s%N 2>/dev/null || echo "0")
+_hook_ms() {
+  local end_ns=$(date +%s%N 2>/dev/null || echo "0")
+  if [ "$_HOOK_START_NS" != "0" ] && [ "$end_ns" != "0" ] && [ ${#end_ns} -gt 10 ]; then
+    echo $(( (end_ns - _HOOK_START_NS) / 1000000 ))
+  else
+    echo $(( ($(date +%s) - _HOOK_START) * 1000 ))
+  fi
+}
+
 # Extract fields
 TOOL_NAME=$(echo "$input" | jq -r '.tool_name // ""' 2>/dev/null)
 TOOL_OUTPUT=$(echo "$input" | jq -r '.tool_output // ""' 2>/dev/null)
@@ -59,6 +71,20 @@ elif echo "$ERROR_LINE" | grep -qiE '(test|assert|expect|jest|phpunit|bats|cover
   CATEGORY="testing"
 fi
 
+# ─── Match Fix Suggestion ────────────────────────────────────────────────
+SUGGESTION=""
+FIXES_FILE="${ARKA_OS:-$HOME/.claude/skills/arka}/config/gotchas-fixes.json"
+# Also check repo path
+if [ ! -f "$FIXES_FILE" ]; then
+  REPO_PATH=$(cat "${ARKA_OS:-$HOME/.claude/skills/arka}/.repo-path" 2>/dev/null || echo "")
+  [ -n "$REPO_PATH" ] && FIXES_FILE="$REPO_PATH/config/gotchas-fixes.json"
+fi
+if [ -f "$FIXES_FILE" ] && command -v jq &>/dev/null; then
+  SUGGESTION=$(jq -r --arg err "$ERROR_LINE" '
+    .fixes[] | select(.pattern_match as $p | $err | test($p; "i")) | .suggestion
+  ' "$FIXES_FILE" 2>/dev/null | head -1)
+fi
+
 # ─── Detect Active Project ───────────────────────────────────────────────
 PROJECT=""
 if [ -n "$CWD" ]; then
@@ -105,13 +131,15 @@ fi
     "$GOTCHAS_FILE" 2>/dev/null | head -1)
 
   if [ -n "$EXISTING_IDX" ] && [ "$EXISTING_IDX" -ge 0 ] 2>/dev/null; then
-    # Increment count, update last_seen, add project if new
+    # Increment count, update last_seen, add project if new, add suggestion if missing
     jq --argjson idx "$EXISTING_IDX" \
        --arg now "$NOW" \
        --arg proj "$PROJECT" \
+       --arg sug "$SUGGESTION" \
        '.[$idx].count += 1 |
         .[$idx].last_seen = $now |
-        (if $proj != "" and ($proj | IN(.[$idx].projects[]?) | not) then .[$idx].projects += [$proj] else . end)' \
+        (if $proj != "" and ($proj | IN(.[$idx].projects[]?) | not) then .[$idx].projects += [$proj] else . end) |
+        (if $sug != "" and ((.[$idx].suggestion // "") == "") then .[$idx].suggestion = $sug else . end)' \
        "$GOTCHAS_FILE" > "$GOTCHAS_FILE.tmp" 2>/dev/null && mv "$GOTCHAS_FILE.tmp" "$GOTCHAS_FILE"
   else
     # Add new entry
@@ -121,6 +149,7 @@ fi
        --arg tool "$TOOL_NAME" \
        --arg now "$NOW" \
        --arg proj "$PROJECT" \
+       --arg sug "$SUGGESTION" \
        '. += [{
          "pattern": $pat,
          "full_pattern": ($full | .[0:500]),
@@ -129,7 +158,8 @@ fi
          "count": 1,
          "first_seen": $now,
          "last_seen": $now,
-         "projects": (if $proj != "" then [$proj] else [] end)
+         "projects": (if $proj != "" then [$proj] else [] end),
+         "suggestion": (if $sug != "" then $sug else null end)
        }]' \
        "$GOTCHAS_FILE" > "$GOTCHAS_FILE.tmp" 2>/dev/null && mv "$GOTCHAS_FILE.tmp" "$GOTCHAS_FILE"
   fi
@@ -139,6 +169,20 @@ fi
     mv "$GOTCHAS_FILE.tmp" "$GOTCHAS_FILE"
 
 ) 200>"$LOCK_FILE"
+
+# ─── Log Metrics ─────────────────────────────────────────────────────────
+_DURATION_MS=$(_hook_ms)
+METRICS_FILE="$HOME/.arka-os/hook-metrics.json"
+METRICS_LOCK="$HOME/.arka-os/hook-metrics.lock"
+mkdir -p "$HOME/.arka-os"
+(
+  if command -v flock &>/dev/null; then flock -w 2 200; else true; fi
+  [ ! -f "$METRICS_FILE" ] && echo '[]' > "$METRICS_FILE"
+  NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+  jq --argjson dur "$_DURATION_MS" --arg ts "$NOW" --arg hook "post-tool-use" \
+    '. += [{"hook": $hook, "duration_ms": $dur, "timestamp": $ts}] | .[-500:]' \
+    "$METRICS_FILE" > "$METRICS_FILE.tmp" 2>/dev/null && mv "$METRICS_FILE.tmp" "$METRICS_FILE"
+) 200>"$METRICS_LOCK" 2>/dev/null
 
 # Silent output — no context injection needed from PostToolUse
 echo '{}'

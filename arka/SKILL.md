@@ -23,6 +23,7 @@ If the output is not empty, display it to the user before proceeding with the co
 
 | Command | Description |
 |---------|-------------|
+| `/do <description>` | Universal orchestrator — describe what you need in natural language |
 | `/arka standup` | Daily standup — summarize all active projects, pending tasks, and updates |
 | `/arka status` | System status — version, departments, personas, Pro/ext skills, knowledge stats |
 | `/arka monitor` | Check for tech stack updates, security alerts, and opportunities |
@@ -58,28 +59,68 @@ Quick: /arka help • /dev feature • /mkt social • /kb learn
 
 4. If the user immediately provides a command or request, skip the greeting and process their request directly.
 
+## /do — Universal Orchestrator
+
+The `/do` command resolves natural language to the exact slash command. Users never need to memorize commands.
+
+**Also applies to plain text input** — typing without a slash prefix is equivalent to `/do`.
+
+### Step 1: Load Registry
+
+Read `knowledge/commands-registry.json` from the ARKA OS repo (path from `$ARKA_OS/.repo-path`).
+
+### Step 2: Intent Classification
+
+Given the user's natural language request:
+1. If request explicitly mentions a department or command prefix (e.g. "use /dev" or "/mkt social") → direct match
+2. Match against registry `keywords` and `examples` fields → score and rank candidates
+3. Select top 3 candidates by relevance
+
+### Step 3: Resolution Display
+
+**Single match (high confidence):**
+```
+═══ ARKA OS ═══
+ Request:  "create social posts about AI"
+ Command:  /mkt social "AI"
+ Lead:     Luna (Content Creator)
+ Type:     Content generation (no code changes)
+═══════════════
+Executing...
+```
+
+**Multiple matches (show options):**
+```
+═══ ARKA OS ═══
+ Request:  "audit my site"
+
+ 1. /mkt audit <url>  — Full marketing audit (5 agents)
+ 2. /ecom audit <url> — Full store audit (5 agents)
+ 3. /dev security-audit — OWASP security audit
+═══════════════
+Which one? (1/2/3)
+```
+
+### Step 4: Confirmation Behavior
+
+- `modifies_code: false` → Auto-execute with announcement
+- `modifies_code: true` or `requires_worktree: true` → Show preview, ask confirmation
+- Ambiguous (multiple matches with similar scores) → Show options, ask user to pick
+
+### Step 5: Execute
+
+Load the target department's SKILL.md and execute the resolved command with the user's parameters.
+
 ## Smart Routing (Plain Text)
 
-When the user types plain text instead of a slash command, classify their request and route to the appropriate department automatically.
-
-**Signal words → Department mapping:**
-
-| Signal Words | Department | Route To |
-|-------------|-----------|----------|
-| "build", "code", "feature", "fix", "bug", "deploy", "test", "refactor", "api", "database", "scaffold", "implement", "debug" | Development | `/dev` |
-| "post", "social", "content", "blog", "email campaign", "ads", "landing page", "SEO", "marketing", "copywrite", "newsletter" | Marketing | `/mkt` |
-| "store", "product", "pricing", "ecommerce", "shop", "listing", "catalog", "checkout", "cart" | E-commerce | `/ecom` |
-| "budget", "forecast", "invoice", "pitch", "invest", "financial", "revenue", "expense", "bank", "funding" | Finance | `/fin` |
-| "task", "meeting", "calendar", "automate", "schedule", "email" (non-campaign), "notify", "process", "workflow" | Operations | `/ops` |
-| "strategy", "brainstorm", "market analysis", "competitor", "SWOT", "evaluate idea", "plan", "roadmap", "vision" | Strategy | `/strat` |
-| "learn", "persona", "knowledge", "transcribe", "search knowledge", "youtube", "video" | Knowledge | `/kb` |
+When the user types plain text instead of a slash command, use the same registry-based resolution as `/do` above. This replaces static signal-word matching with intelligent command resolution.
 
 **Routing behavior:**
-1. Classify the request using the signal words above
-2. Announce: "Routing to **{Department}** department..."
-3. Load the department's SKILL.md and execute the appropriate command
-4. If the request is ambiguous or spans multiple departments, ask the user which department they meant
-5. If no department matches, treat it as a general question and answer directly
+1. Load `knowledge/commands-registry.json`
+2. Match the user's request against command keywords and examples
+3. If high-confidence single match → announce and execute
+4. If multiple matches → show options and ask
+5. If no match → treat as a general question and answer directly
 
 ## Department Routing
 

@@ -81,8 +81,8 @@ EOF
 
 # Helper: create mock agent files
 create_mock_agents() {
-  local count="${1:-15}"
-  local agents=("cto" "tech-lead" "architect" "senior-dev" "frontend-dev" "security" "devops" "qa" "analyst" "cfo" "coo" "content-creator" "ecommerce-manager" "strategist" "knowledge-curator")
+  local count="${1:-19}"
+  local agents=("cto" "tech-lead" "architect" "senior-dev" "frontend-dev" "security" "devops" "qa" "analyst" "cfo" "coo" "content-creator" "ecommerce-manager" "strategist" "knowledge-curator" "creative-director" "brand-strategist" "visual-designer" "motion-designer")
   for i in $(seq 0 $((count - 1))); do
     echo "---" > "$TEST_AGENTS_DIR/arka-${agents[$i]}.md"
     echo "name: ${agents[$i]}" >> "$TEST_AGENTS_DIR/arka-${agents[$i]}.md"
@@ -106,4 +106,68 @@ create_mock_gotchas() {
   }
 ]
 EOF
+}
+
+# Helper: create mock kb-jobs.json
+create_mock_kb_jobs() {
+  mkdir -p "$TEST_ARKA_CONFIG"
+  cat > "$TEST_ARKA_CONFIG/kb-jobs.json" << 'EOF'
+{
+  "jobs": [
+    {
+      "id": "abc12345",
+      "url": "https://youtube.com/watch?v=test",
+      "output_dir": "/tmp/test-media/abc12345",
+      "transcription_method": "local-whisper",
+      "persona": "Test Persona",
+      "status": "ready",
+      "title": "Test Video Title",
+      "word_count": 1500,
+      "error": null,
+      "pid": null,
+      "created_at": "2026-03-15T10:00:00Z",
+      "updated_at": "2026-03-15T10:30:00Z"
+    }
+  ]
+}
+EOF
+}
+
+# Helper: create mock kb-jobs.json with dead PID
+create_mock_kb_jobs_with_dead_pid() {
+  mkdir -p "$TEST_ARKA_CONFIG"
+  cat > "$TEST_ARKA_CONFIG/kb-jobs.json" << 'EOF'
+{
+  "jobs": [
+    {
+      "id": "dead1234",
+      "url": "https://youtube.com/watch?v=dead",
+      "output_dir": "/tmp/test-media/dead1234",
+      "transcription_method": "local-whisper",
+      "persona": "",
+      "status": "downloading",
+      "title": null,
+      "word_count": null,
+      "error": null,
+      "pid": 99999,
+      "created_at": "2026-03-15T10:00:00Z",
+      "updated_at": "2026-03-15T10:00:00Z"
+    }
+  ]
+}
+EOF
+}
+
+# Helper: create mock media directory
+create_mock_media_dir() {
+  local date_dir="$TEST_ARKA_CONFIG/media/2025-01-01"
+  mkdir -p "$date_dir/abc12345"
+  echo "mock audio" > "$date_dir/abc12345/audio.wav"
+  echo "mock transcript" > "$date_dir/abc12345/audio.txt"
+  echo '{"title": "Test"}' > "$date_dir/abc12345/metadata.json"
+}
+
+# Helper: create mock MCP registry
+create_mock_mcp_registry() {
+  cp "$REPO_DIR/mcps/registry.json" "$TEST_TEMP_DIR/registry.json"
 }

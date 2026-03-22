@@ -31,6 +31,16 @@ These rules are best practices. Encouraged but not enforced.
 3. **KB Contribution** — When learning something valuable, consider adding it to the knowledge base via `/kb learn`.
 4. **Complexity Assessment** — Evaluate task complexity before starting. Use the appropriate workflow tier (Tier 1 for complex, Tier 2 for moderate, Tier 3 for simple).
 
+## Conflict Resolution (DISC-Informed)
+
+When equal-tier agents disagree:
+1. **D vs D:** Fastest path to results wins. Present data, not opinions.
+2. **C vs C:** Most thorough analysis wins. Allow time for evaluation.
+3. **D vs C:** D states the goal, C validates the method. Neither overrides.
+4. **I vs S:** I proposes, S stress-tests for team impact. Compromise on pace.
+5. **Escalation:** Same department → Tier 0 lead. Cross-department → COO Sofia.
+6. **Record:** Document decision + both positions in agent MEMORY.md.
+
 ## Amendment Process
 
 | Level | Required Approval | Process |
