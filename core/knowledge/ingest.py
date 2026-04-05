@@ -233,11 +233,14 @@ class IngestEngine:
         word_count = len(text.split())
         progress(70, f"Phase 4/4 — Transcribed: {word_count} words")
 
-        # Cleanup audio file
+        # Rename audio to include title for easy identification
+        safe_title = "".join(c if c.isalnum() or c in " -_" else "" for c in title)[:50].strip()
+        final_audio = self._media_dir / f"{safe_title}.wav"
         try:
-            os.remove(audio_path)
-        except OSError:
-            pass
+            import shutil
+            shutil.move(audio_path, str(final_audio))
+        except Exception:
+            final_audio = Path(audio_path)
 
         return text, title
 

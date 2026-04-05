@@ -87,7 +87,7 @@ function clearFile() {
 }
 
 const canIngest = computed(() => {
-  return detectedType.value !== null && !isIngesting.value
+  return detectedType.value !== null
 })
 
 // --- Active Ingestion Tracking via WebSocket ---
@@ -180,37 +180,27 @@ onUnmounted(() => {
 async function handleIngest() {
   if (!detectedType.value) return
 
-  isIngesting.value = true
   ingestError.value = null
-  activeTask.value = null
-
   const source = ingestUrl.value.trim() || ingestFile.value?.name || ''
+  const type = detectedType.value
+
+  // Clear form immediately so user can submit more
+  ingestUrl.value = ''
+  clearFile()
+  pasteText.value = ''
+  pasteTitle.value = ''
 
   try {
-    const response = await $fetch<IngestResponse>(`${apiBase}/api/knowledge/ingest`, {
+    await $fetch<IngestResponse>(`${apiBase}/api/knowledge/ingest`, {
       method: 'POST',
-      body: {
-        source,
-        type: detectedType.value
-      } satisfies IngestRequest
+      body: { source, type } satisfies IngestRequest,
     })
 
-    const jobId = response.job_id || response.task_id
-    activeTask.value = {
-      id: jobId,
-      title: source,
-      status: 'queued',
-      progress_percent: 0,
-      progress_message: 'Queued for processing...',
-      source_type: response.source_type
-    }
-
-    localStorage.setItem(ACTIVE_TASK_KEY, jobId)
+    // Refresh jobs table + connect WebSocket for live updates
     fetchJobs()
     connectWebSocket()
   } catch (err) {
-    isIngesting.value = false
-    ingestError.value = err instanceof Error ? err.message : 'Failed to start ingestion'
+    ingestError.value = err instanceof Error ? err.message : 'Failed to queue job'
   }
 }
 
@@ -323,7 +313,7 @@ function formatScore(score: number): string {
       <template v-else>
         <!-- Add Content Section -->
         <UCard>
-          <fieldset :disabled="isIngesting" class="space-y-5">
+          <fieldset class="space-y-5">
             <!-- Input Mode Tabs -->
             <div class="flex items-center gap-1 rounded-lg bg-muted/10 p-1 w-fit">
               <button
@@ -441,7 +431,7 @@ function formatScore(score: number): string {
                 icon="i-lucide-zap"
                 size="md"
                 :disabled="!canIngest && !(activeInputMode === 'text' && pasteText.length > 50)"
-                :loading="isIngesting"
+                :loading="false"
                 @click="handleIngest"
               />
             </div>

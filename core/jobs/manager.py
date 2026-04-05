@@ -21,6 +21,7 @@ class Job:
     progress: int = 0         # 0-100
     message: str = ""         # Current step description
     chunks_created: int = 0
+    media_path: str = ""      # Path to downloaded media file
     error: str = ""
     created_at: str = ""
     started_at: str = ""
@@ -56,6 +57,7 @@ class JobManager:
                     progress INTEGER DEFAULT 0,
                     message TEXT DEFAULT '',
                     chunks_created INTEGER DEFAULT 0,
+                    media_path TEXT DEFAULT '',
                     error TEXT DEFAULT '',
                     created_at TEXT DEFAULT '',
                     started_at TEXT DEFAULT '',
@@ -100,11 +102,11 @@ class JobManager:
                 (datetime.now().isoformat(), job_id),
             )
 
-    def complete(self, job_id: str, chunks_created: int = 0) -> None:
+    def complete(self, job_id: str, chunks_created: int = 0, media_path: str = "") -> None:
         with self._conn() as conn:
             conn.execute(
-                "UPDATE jobs SET status = 'completed', progress = 100, message = 'Done', chunks_created = ?, completed_at = ? WHERE id = ?",
-                (chunks_created, datetime.now().isoformat(), job_id),
+                "UPDATE jobs SET status = 'completed', progress = 100, message = 'Done', chunks_created = ?, media_path = ?, completed_at = ? WHERE id = ?",
+                (chunks_created, media_path, datetime.now().isoformat(), job_id),
             )
 
     def fail(self, job_id: str, error: str) -> None:
