@@ -13,6 +13,27 @@ const ingestFile = ref<File | null>(null)
 const ingestFileInputRef = ref<HTMLInputElement | null>(null)
 const isIngesting = ref(false)
 const ingestError = ref<string | null>(null)
+const isDragging = ref(false)
+const pasteText = ref('')
+const pasteTitle = ref('')
+
+const activeInputMode = ref<'url' | 'file' | 'text' | 'research'>('url')
+
+const inputModes = [
+  { label: 'URL', value: 'url' as const, icon: 'i-lucide-link' },
+  { label: 'File', value: 'file' as const, icon: 'i-lucide-upload' },
+  { label: 'Text', value: 'text' as const, icon: 'i-lucide-type' },
+  { label: 'Research', value: 'research' as const, icon: 'i-lucide-search' },
+]
+
+function handleDrop(e: DragEvent) {
+  isDragging.value = false
+  const file = e.dataTransfer?.files?.[0]
+  if (file) {
+    ingestFile.value = file
+    ingestUrl.value = ''
+  }
+}
 
 type SourceType = IngestRequest['type'] | null
 
@@ -255,78 +276,123 @@ function formatScore(score: number): string {
         <!-- Add Content Section -->
         <UCard>
           <fieldset :disabled="isIngesting" class="space-y-5">
-            <!-- Main URL Input — full width, prominent -->
-            <div class="relative">
+            <!-- Input Mode Tabs -->
+            <div class="flex items-center gap-1 rounded-lg bg-muted/10 p-1 w-fit">
+              <button
+                v-for="mode in inputModes"
+                :key="mode.value"
+                class="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
+                :class="activeInputMode === mode.value ? 'bg-elevated text-highlighted shadow-sm' : 'text-muted hover:text-highlighted'"
+                @click="activeInputMode = mode.value"
+              >
+                <UIcon :name="mode.icon" class="size-3.5" />
+                {{ mode.label }}
+              </button>
+            </div>
+
+            <!-- Mode: URL -->
+            <div v-if="activeInputMode === 'url'" class="space-y-3">
               <UInput
-                id="ingest-url"
                 v-model="ingestUrl"
-                placeholder="Paste a YouTube URL, web page, or article link..."
-                icon="i-lucide-sparkles"
+                placeholder="Paste a YouTube URL, web page, article, or research link..."
+                icon="i-lucide-link"
                 size="xl"
                 class="w-full"
-                :disabled="!!ingestFile"
                 :ui="{ base: 'text-base' }"
                 @keydown.enter.prevent="canIngest && handleIngest()"
               />
+              <div class="flex items-center gap-1.5">
+                <UBadge label="YouTube" color="error" variant="outline" size="xs" />
+                <UBadge label="Web" color="primary" variant="outline" size="xs" />
+                <UBadge label="Articles" color="primary" variant="outline" size="xs" />
+                <UBadge label="Docs" color="neutral" variant="outline" size="xs" />
+              </div>
             </div>
 
-            <!-- Source types + file upload + action — single row -->
-            <div class="flex flex-wrap items-center gap-3">
-              <!-- Supported types -->
-              <div class="flex items-center gap-1.5">
-                <UBadge label="YouTube" color="error" variant="outline" size="xs" icon="i-lucide-play" />
-                <UBadge label="Web" color="primary" variant="outline" size="xs" icon="i-lucide-globe" />
-                <UBadge label="PDF" color="warning" variant="outline" size="xs" icon="i-lucide-file-text" />
-                <UBadge label="Audio" color="success" variant="outline" size="xs" icon="i-lucide-headphones" />
-                <UBadge label="Markdown" color="neutral" variant="outline" size="xs" icon="i-lucide-file-code" />
-              </div>
-
-              <!-- Divider -->
-              <div class="h-4 w-px bg-muted/30" />
-
-              <!-- File upload — styled button -->
-              <label class="cursor-pointer">
-                <input
-                  ref="ingestFileInputRef"
-                  type="file"
-                  accept=".pdf,.mp3,.wav,.m4a,.ogg,.flac,.md,.mdx"
-                  class="hidden"
-                  @change="handleFileSelect"
-                />
-                <span class="inline-flex items-center gap-1.5 rounded-md border border-default px-3 py-1.5 text-xs font-medium text-muted hover:text-highlighted hover:border-primary/50 transition-colors">
-                  <UIcon name="i-lucide-upload" class="size-3.5" />
-                  {{ ingestFile ? ingestFile.name : 'Upload file' }}
-                </span>
-              </label>
-              <UButton
-                v-if="ingestFile"
-                icon="i-lucide-x"
-                variant="ghost"
-                color="neutral"
-                size="xs"
-                @click="clearFile"
+            <!-- Mode: File Upload with Drag & Drop -->
+            <div
+              v-if="activeInputMode === 'file'"
+              class="relative rounded-xl border-2 border-dashed transition-colors p-8 text-center"
+              :class="isDragging ? 'border-primary bg-primary/5' : 'border-default hover:border-primary/40'"
+              @dragover.prevent="isDragging = true"
+              @dragleave.prevent="isDragging = false"
+              @drop.prevent="handleDrop"
+            >
+              <input
+                ref="ingestFileInputRef"
+                type="file"
+                accept=".pdf,.mp3,.wav,.m4a,.ogg,.flac,.md,.mdx,.txt"
+                class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                @change="handleFileSelect"
               />
+              <div v-if="!ingestFile">
+                <UIcon name="i-lucide-cloud-upload" class="size-10 text-muted mx-auto mb-3" />
+                <p class="text-sm font-medium text-highlighted">Drop files here or click to browse</p>
+                <p class="text-xs text-muted mt-1">PDF, MP3, WAV, Markdown, TXT</p>
+              </div>
+              <div v-else class="flex items-center justify-center gap-3">
+                <UIcon :name="typeIconMap[detectedType ?? ''] ?? 'i-lucide-file'" class="size-6 text-primary" />
+                <div class="text-left">
+                  <p class="text-sm font-medium text-highlighted">{{ ingestFile.name }}</p>
+                  <p class="text-xs text-muted">{{ (ingestFile.size / 1024).toFixed(1) }} KB</p>
+                </div>
+                <UButton icon="i-lucide-x" variant="ghost" size="xs" @click.stop="clearFile" />
+              </div>
+            </div>
 
-              <!-- Spacer -->
-              <div class="flex-1" />
+            <!-- Mode: Text / Paste -->
+            <div v-if="activeInputMode === 'text'" class="space-y-3">
+              <textarea
+                v-model="pasteText"
+                rows="6"
+                placeholder="Paste or write text content here... Notes, excerpts, research findings, transcripts..."
+                class="w-full rounded-lg border border-default bg-transparent px-4 py-3 text-sm text-highlighted placeholder:text-muted/50 focus:border-primary focus:outline-none resize-y"
+              />
+              <UInput
+                v-model="pasteTitle"
+                placeholder="Title (optional) — e.g., 'Meeting Notes Q3', 'Research: Growth Hacking'"
+                icon="i-lucide-type"
+                size="sm"
+                class="w-full"
+              />
+            </div>
 
-              <!-- Detected type -->
-              <div v-if="detectedType" class="flex items-center gap-1.5">
-                <UIcon :name="typeIconMap[detectedType] ?? 'i-lucide-file'" class="size-4 text-primary" />
-                <UBadge
-                  :label="detectedType.charAt(0).toUpperCase() + detectedType.slice(1)"
-                  :color="typeColorMap[detectedType] ?? 'neutral'"
-                  variant="subtle"
-                  size="sm"
-                />
+            <!-- Mode: Research -->
+            <div v-if="activeInputMode === 'research'" class="space-y-3">
+              <UInput
+                v-model="ingestUrl"
+                placeholder="Enter a topic or URL to research... e.g., 'Alex Hormozi business model'"
+                icon="i-lucide-search"
+                size="xl"
+                class="w-full"
+                :ui="{ base: 'text-base' }"
+                @keydown.enter.prevent="canIngest && handleIngest()"
+              />
+              <p class="text-xs text-muted">ArkaOS will fetch the page, extract the content, and index it into your knowledge base.</p>
+            </div>
+
+            <!-- Action Row -->
+            <div class="flex items-center justify-between gap-4">
+              <div class="flex items-center gap-2">
+                <template v-if="detectedType">
+                  <UIcon :name="typeIconMap[detectedType] ?? 'i-lucide-file'" class="size-4 text-primary" />
+                  <UBadge
+                    :label="detectedType.charAt(0).toUpperCase() + detectedType.slice(1)"
+                    :color="typeColorMap[detectedType] ?? 'neutral'"
+                    variant="subtle"
+                    size="sm"
+                  />
+                </template>
+                <span v-else-if="activeInputMode === 'text' && pasteText" class="text-xs text-muted">
+                  {{ pasteText.split(/\s+/).length }} words
+                </span>
               </div>
 
-              <!-- Ingest button -->
               <UButton
-                label="Ingest"
+                :label="activeInputMode === 'research' ? 'Research & Index' : 'Ingest'"
                 icon="i-lucide-zap"
                 size="md"
-                :disabled="!canIngest"
+                :disabled="!canIngest && !(activeInputMode === 'text' && pasteText.length > 50)"
                 :loading="isIngesting"
                 @click="handleIngest"
               />
