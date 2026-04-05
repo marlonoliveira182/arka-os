@@ -209,8 +209,12 @@ function discColor(disc: string): string {
         <template #leading>
           <UDashboardSidebarCollapse />
         </template>
+
         <template #trailing>
           <UBadge v-if="data?.total" :label="data.total" variant="subtle" />
+        </template>
+
+        <template #right>
           <UButton
             :label="showForm ? 'Cancel' : 'New Persona'"
             :icon="showForm ? 'i-lucide-x' : 'i-lucide-plus'"

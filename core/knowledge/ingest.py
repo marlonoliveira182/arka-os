@@ -119,6 +119,22 @@ class IngestEngine:
 
         progress(100, f"Done — {count} chunks indexed")
 
+        # Record token usage in budget
+        try:
+            from core.budget.manager import BudgetManager
+            from pathlib import Path as BudgetPath
+            budget_mgr = BudgetManager(storage_path=BudgetPath.home() / ".arkaos" / "budget-usage.json")
+            tokens_est = len(text) // 4  # ~1 token per 4 chars
+            budget_mgr.record_usage(
+                agent_id="kb-indexer",
+                tokens=tokens_est,
+                tier=2,
+                department="kb",
+                description=f"ingest-{source_type}: {source[:60]}",
+            )
+        except Exception:
+            pass
+
         return IngestResult(
             source=source,
             source_type=source_type,

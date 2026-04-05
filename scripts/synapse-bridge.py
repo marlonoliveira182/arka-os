@@ -145,6 +145,26 @@ def main() -> int:
         result = engine.inject(ctx)
         total_ms = int((time.time() - start) * 1000)
 
+        # Record token usage in budget tracker
+        try:
+            from core.budget.manager import BudgetManager
+            budget_mgr = BudgetManager(storage_path=Path.home() / ".arkaos" / "budget-usage.json")
+            # Extract department from result layers
+            dept = ""
+            for lr in result.layers:
+                if lr.layer_id == "L1" and lr.tag:
+                    dept = lr.tag.replace("[dept:", "").replace("]", "")
+                    break
+            budget_mgr.record_usage(
+                agent_id=ctx.active_agent or "system",
+                tokens=result.total_tokens_est,
+                tier=2,
+                department=dept,
+                description="synapse-context-injection",
+            )
+        except Exception:
+            pass  # Never block on budget tracking
+
         if args.layers_only:
             output = {
                 "context_string": result.context_string,
