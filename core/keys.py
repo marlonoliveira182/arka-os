@@ -14,7 +14,7 @@ KEYS_PATH = Path.home() / ".arkaos" / "keys.json"
 # Known providers with descriptions
 PROVIDERS = {
     "OPENAI_API_KEY": {"name": "OpenAI", "used_for": "Whisper transcription, embeddings, GPT"},
-    "ANTHROPIC_API_KEY": {"name": "Anthropic", "used_for": "Claude API (outside Claude Code)"},
+    "GOOGLE_API_KEY": {"name": "Google", "used_for": "Gemini API, Nano Banana, Google Cloud AI"},
     "FAL_API_KEY": {"name": "fal.ai", "used_for": "Image generation, video generation"},
 }
 

@@ -37,7 +37,7 @@ async function deleteKey(keyName: string) {
 const keyOptions = [
   { label: 'OPENAI_API_KEY', value: 'OPENAI_API_KEY' },
   { label: 'FAL_API_KEY', value: 'FAL_API_KEY' },
-  { label: 'ANTHROPIC_API_KEY', value: 'ANTHROPIC_API_KEY' },
+  { label: 'GOOGLE_API_KEY', value: 'GOOGLE_API_KEY' },
   { label: 'Custom...', value: 'custom' },
 ]
 
