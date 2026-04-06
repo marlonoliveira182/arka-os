@@ -123,7 +123,7 @@ async function main() {
       const indexArgs = positionals.slice(1).join(" ");
       const repoRoot = dirname(fileURLToPath(import.meta.url)).replace(/\/installer$/, "");
       try {
-        execSync(`python3 "${repoRoot}/scripts/knowledge-index.py" ${indexArgs || "--vault"}`, {
+        execSync(`python3 "${repoRoot}/scripts/knowledge-index.py" ${indexArgs || ""}`, {
           stdio: "inherit",
           env: { ...process.env, ARKAOS_ROOT: repoRoot },
         });

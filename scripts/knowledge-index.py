@@ -80,7 +80,28 @@ def main() -> int:
                 directory = vault
 
     if not directory:
-        print("No directory specified. Use --vault or --dir.", file=sys.stderr)
+        # Try common vault locations
+        common_vaults = [
+            Path.home() / "Documents" / "Personal",
+            Path.home() / "Documents" / "Obsidian",
+            Path.home() / "Obsidian",
+            Path.home() / "vault",
+        ]
+        for vault_path in common_vaults:
+            if vault_path.exists() and (vault_path / ".obsidian").exists():
+                directory = str(vault_path)
+                print(f"Auto-detected vault: {directory}" if not args.json_output else "", file=sys.stderr)
+                break
+
+    if not directory:
+        # Fall back to indexing ArkaOS departments (always available)
+        departments_dir = ARKAOS_ROOT / "departments"
+        if departments_dir.exists():
+            directory = str(departments_dir)
+            print(f"No vault found. Indexing ArkaOS skills: {directory}" if not args.json_output else "", file=sys.stderr)
+
+    if not directory:
+        print("No directory specified. Use --vault <path> or --dir <path>.", file=sys.stderr)
         return 2
 
     if not Path(directory).exists():
