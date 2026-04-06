@@ -1,0 +1,33 @@
+id: recruiting-squad
+name: Recruiting Squad
+description: Full-cycle recruiting from job brief to hire
+department: recruiting
+squad_type: department
+topology: stream-aligned
+
+skills_prefix: "/recruit"
+obsidian_path: "Recruiting/"
+quality_gate_required: true
+max_size: 4
+
+members:
+  - agent_id: recruiting-director-lucia
+    role: Orchestrates pipeline, defines strategy, manages compliance
+    is_lead: true
+  - agent_id: talent-sourcer-renato
+    role: Job descriptions, sourcing strategies, outreach templates
+  - agent_id: screening-analyst-mariana
+    role: CV analysis, scoring, candidate ranking, database management
+  - agent_id: interview-coach-tiago
+    role: Interview guides, evaluation rubrics, debrief facilitation
+
+workflows:
+  - workflow_id: recruiting-enterprise
+    trigger_command: "/recruit brief <role> + /recruit screen"
+    tier: enterprise
+  - workflow_id: recruiting-focused
+    trigger_command: "/recruit brief|source|screen|batch|interview|offer"
+    tier: focused
+  - workflow_id: recruiting-specialist
+    trigger_command: "/recruit scorecard|rank|debrief|report|add|search|gdpr"
+    tier: specialist

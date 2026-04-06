@@ -1,0 +1,30 @@
+id: recruiting-specialist
+name: Specialist Recruiting Task
+department: recruiting
+tier: specialist
+command: /recruit scorecard|rank|debrief|report|add|search|gdpr
+requires_branch: false
+requires_spec: false
+quality_gate_required: false
+description: Quick specialist task with direct output
+
+phases:
+  - id: execute
+    name: Execute
+    agents:
+      - agent_id: "{assigned_specialist}"
+        role: Perform the specialist recruiting task
+    gate:
+      type: auto
+
+  - id: report
+    name: Report
+    agents:
+      - agent_id: "{assigned_specialist}"
+        role: Save results to Obsidian vault
+    gate:
+      type: auto
+    outputs:
+      - type: document
+        format: markdown
+        obsidian_path: Recruiting/

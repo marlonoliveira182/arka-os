@@ -1,0 +1,47 @@
+id: recruiting-focused
+name: Focused Recruiting Task
+department: recruiting
+tier: focused
+command: /recruit brief|source|screen|batch|interview|offer
+requires_branch: false
+requires_spec: false
+quality_gate_required: true
+description: Single-task recruiting workflow with review and quality gate
+
+phases:
+  - id: execute
+    name: Execute
+    agents:
+      - agent_id: "{assigned_specialist}"
+        role: Perform the requested recruiting task
+    gate:
+      type: auto
+
+  - id: review
+    name: Review
+    agents:
+      - agent_id: recruiting-director-lucia
+        role: Validate output quality and completeness
+    gate:
+      type: auto
+
+  - id: quality-gate
+    name: Quality Gate
+    agents:
+      - agent_id: cqo-marta
+        role: Orchestrate quality review
+    gate:
+      type: quality_gate
+      required_verdict: APPROVED
+
+  - id: delivery
+    name: Delivery
+    agents:
+      - agent_id: recruiting-director-lucia
+        role: Save output to Obsidian vault
+    gate:
+      type: auto
+    outputs:
+      - type: document
+        format: markdown
+        obsidian_path: Recruiting/

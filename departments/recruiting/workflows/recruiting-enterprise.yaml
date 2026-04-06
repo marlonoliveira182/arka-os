@@ -1,0 +1,72 @@
+id: recruiting-enterprise
+name: Full Recruiting Pipeline
+department: recruiting
+tier: enterprise
+command: /recruit brief <role> + screen
+requires_branch: false
+requires_spec: false
+quality_gate_required: true
+description: End-to-end recruiting workflow from job brief through screening to interview prep
+
+phases:
+  - id: brief
+    name: Job Brief
+    agents:
+      - agent_id: talent-sourcer-renato
+        role: Create structured job description with requirements and culture markers
+      - agent_id: recruiting-director-lucia
+        role: Review and validate job brief
+    gate:
+      type: user_approval
+      description: Review the job brief before proceeding to scorecard creation
+
+  - id: scorecard
+    name: Scorecard Build
+    agents:
+      - agent_id: screening-analyst-mariana
+        role: Build weighted evaluation scorecard from job brief requirements
+    gate:
+      type: auto
+
+  - id: screening
+    name: CV Screening
+    agents:
+      - agent_id: screening-analyst-mariana
+        role: Analyse CVs against scorecard, score and rank candidates
+    gate:
+      type: auto
+
+  - id: interview-prep
+    name: Interview Preparation
+    agents:
+      - agent_id: interview-coach-tiago
+        role: Generate interview guide with STAR questions mapped to scorecard
+    gate:
+      type: auto
+
+  - id: quality-gate
+    name: Quality Gate
+    agents:
+      - agent_id: cqo-marta
+        role: Orchestrate quality review
+      - agent_id: copy-director-eduardo
+        role: Review all written content for clarity and professionalism
+        parallel: true
+      - agent_id: tech-ux-director-francisca
+        role: Review process integrity and data consistency
+        parallel: true
+    gate:
+      type: quality_gate
+      required_verdict: APPROVED
+
+  - id: delivery
+    name: Delivery
+    agents:
+      - agent_id: recruiting-director-lucia
+        role: Present results and save all outputs to Obsidian vault
+    gate:
+      type: auto
+    outputs:
+      - type: document
+        format: markdown
+        obsidian_path: Recruiting/
