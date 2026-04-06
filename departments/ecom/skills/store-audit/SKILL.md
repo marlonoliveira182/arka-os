@@ -16,3 +16,14 @@ Full store audit: UX, SEO, performance, content, conversion with 5 parallel agen
 ## Output
 
 Comprehensive audit report with scores per area and prioritized fixes
+
+## Browser Steps
+
+Follow the [Browser Integration Pattern](/arka) for availability checking.
+
+- [BROWSER] Open store URL and test the full checkout flow: browse → add to cart → checkout → payment → confirmation
+- [BROWSER] Test mobile responsiveness at different viewport sizes (375px, 768px, 1024px)
+- [BROWSER] Capture screenshots of homepage, product page, cart, and checkout for the audit report
+- [BROWSER] Check page load performance via console timing (Performance API)
+- [BROWSER] Verify search functionality works correctly
+- [BROWSER] Test navigation menu and footer links

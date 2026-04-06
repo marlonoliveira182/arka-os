@@ -36,4 +36,12 @@ allowed-tools: [Read, Write, Edit, Agent, WebFetch]
 - Alert notification on failure (Slack/email)
 - Idempotency: safe to retry without duplicates
 
+## Browser Steps
+
+Follow the [Browser Integration Pattern](/arka) for availability checking.
+
+- [BROWSER] Open the relevant web tools (Gmail, Google Calendar, ClickUp, N8N) to verify automation results
+- [BROWSER] Test the automated workflow end-to-end by triggering it and watching the result in the browser
+- [BROWSER] Verify notifications and emails arrive correctly
+
 ## Output → Workflow diagram + platform config + error handling spec

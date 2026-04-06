@@ -16,3 +16,12 @@ Competitive positioning: alternatives, unique capabilities, value, target, categ
 ## Output
 
 Positioning statement + perceptual map + competitive differentiation
+
+## Browser Steps
+
+Follow the [Browser Integration Pattern](/arka) for availability checking.
+
+- [BROWSER] Visit competitor websites and extract their positioning: taglines, hero copy, value propositions
+- [BROWSER] Capture visual identity elements: color schemes, typography, imagery style
+- [BROWSER] Check social proof: testimonials, client logos, case studies
+- [BROWSER] Compare pricing pages side-by-side

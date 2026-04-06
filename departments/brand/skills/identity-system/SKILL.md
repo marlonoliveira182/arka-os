@@ -16,3 +16,11 @@ Full brand identity: strategy, verbal, visual in the correct order (never skip t
 ## Output
 
 Complete brand identity package saved to Obsidian
+
+## Browser Steps
+
+Follow the [Browser Integration Pattern](/arka) for availability checking.
+
+- [BROWSER] Open the website/app and verify brand elements match the identity system (colors, typography, spacing)
+- [BROWSER] Compare generated assets side-by-side with the live site
+- [BROWSER] Check favicon, og:image, and meta branding elements

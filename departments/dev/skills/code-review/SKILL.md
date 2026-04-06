@@ -16,3 +16,11 @@ Code review against Clean Code and SOLID. Checks naming, SRP, DIP, test coverage
 ## Output
 
 Review report: BLOCKER/WARNING/NOTE with line references and fix suggestions
+
+## Browser Steps
+
+Follow the [Browser Integration Pattern](/arka) for availability checking.
+
+- [BROWSER] Open the application in the browser and verify UI changes visually
+- [BROWSER] Check browser console for JavaScript errors or warnings
+- [BROWSER] If CSS/layout changes: compare before/after visually
