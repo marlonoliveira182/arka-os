@@ -67,6 +67,15 @@ Permissions-Policy: camera=(), microphone=(), geolocation=()
 ### Recommendation: BLOCK release until C1 and H1 resolved
 ```
 
+## Browser Steps
+
+Follow the [Browser Integration Pattern](/arka) for availability checking.
+
+- [BROWSER] Navigate to the application and test input fields for XSS (script injection)
+- [BROWSER] Verify HTTPS is enforced (check URL bar and certificate)
+- [BROWSER] Open console and check for CSP (Content Security Policy) headers
+- [BROWSER] Test authentication flows: login, logout, session expiry
+
 ## References
 
 - [owasp-2025-deep.md](references/owasp-2025-deep.md) — OWASP Top 10 (2025) with vulnerable and fixed code examples, testing methodology, and tools

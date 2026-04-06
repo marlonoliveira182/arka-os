@@ -271,6 +271,42 @@ PROFILE_EOF
     fi
 fi
 
+# ━━━ Browser Integration (Optional) ━━━
+echo ""
+echo "━━━ Browser Integration (Optional) ━━━"
+echo ""
+echo "Claude Code can control Chrome for live testing, design verification,"
+echo "and web automation. Requires: Google Chrome + Claude in Chrome extension."
+echo ""
+printf "Enable browser integration? (y/n): "
+read -r ENABLE_CHROME
+
+if [ "$ENABLE_CHROME" = "y" ] || [ "$ENABLE_CHROME" = "Y" ]; then
+    # Record preference in profile
+    if [ -f "$HOME/.arkaos/profile.json" ]; then
+        python3 -c "
+import json
+with open('$HOME/.arkaos/profile.json', 'r') as f:
+    profile = json.load(f)
+profile['chrome'] = True
+with open('$HOME/.arkaos/profile.json', 'w') as f:
+    json.dump(profile, f, indent=2)
+" 2>/dev/null
+    fi
+
+    echo ""
+    echo "✓ Browser integration enabled."
+    echo ""
+    echo "Next steps:"
+    echo "  1. Install the Claude in Chrome extension:"
+    echo "     → https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn"
+    echo "  2. Restart Chrome after installing"
+    echo "  3. Use 'claude --chrome' or run /chrome to activate browser tools"
+    echo ""
+else
+    echo "✓ Skipped browser integration. Enable later with /chrome."
+fi
+
 # ─── CLI Command ─────────────────────────────────────────────────────────────
 echo -e "${BLUE}[CLI Command]${NC}"
 mkdir -p "$HOME/.local/bin"

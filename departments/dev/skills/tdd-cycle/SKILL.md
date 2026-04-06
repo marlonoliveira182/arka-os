@@ -54,3 +54,10 @@ REPEAT
 | React/Next | Jest | `npx jest` |
 | Python | pytest | `python -m pytest` |
 | E2E | Playwright | `npx playwright test` |
+
+## Browser Steps
+
+Follow the [Browser Integration Pattern](/arka) for availability checking.
+
+- [BROWSER] After tests pass, if web app: open localhost in browser and verify the feature works visually
+- [BROWSER] Check console for runtime errors that tests might not catch

@@ -16,3 +16,12 @@ Operational dashboard design: select metrics, define targets, build layout.
 ## Output
 
 Dashboard spec with metrics, targets, data sources, and alert thresholds
+
+## Browser Steps
+
+Follow the [Browser Integration Pattern](/arka) for availability checking.
+
+- [BROWSER] Open the dashboard in browser and verify all widgets render correctly
+- [BROWSER] Check that data loads and updates in real-time (if WebSocket)
+- [BROWSER] Test responsive layout at different screen sizes
+- [BROWSER] Verify charts, tables, and graphs display correct data

@@ -71,4 +71,13 @@ allowed-tools: [Read, Write, Edit, Agent, WebFetch, WebSearch]
 3. ...
 ```
 
+## Browser Steps
+
+Follow the [Browser Integration Pattern](/arka) for availability checking.
+
+- [BROWSER] Navigate to competitor websites and extract real-time pricing data
+- [BROWSER] Capture screenshots of competitor product pages, pricing pages, and feature comparisons
+- [BROWSER] Check competitor positioning statements and messaging from their homepage
+- [BROWSER] Extract supplier/partner information from competitor sites when available
+
 ## Output → Obsidian: `WizardingCode/Strategy/Analysis/FIVE-FORCES-<industry>-<date>.md`

@@ -16,3 +16,12 @@ E-commerce analytics: AOV, conversion rate, CLV, ROAS, cart abandonment rate.
 ## Output
 
 Analytics dashboard with funnel visualization and benchmark comparison
+
+## Browser Steps
+
+Follow the [Browser Integration Pattern](/arka) for availability checking.
+
+- [BROWSER] Open the store and verify GA4 tracking fires on page load (check Network tab for collect requests)
+- [BROWSER] Test conversion tracking: complete a purchase flow and verify events fire
+- [BROWSER] Check Meta Pixel fires correctly (search for fbq in console)
+- [BROWSER] Verify Google Tag Manager container loads
