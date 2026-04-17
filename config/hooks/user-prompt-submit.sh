@@ -275,8 +275,41 @@ NO generic assistant replies. Announce the squad before responding.
 When [knowledge:N chunks] is present, cite at least one source.
 If [knowledge:N chunks] is absent on a non-trivial ArkaOS topic, query Obsidian first."
 
+# ─── Workflow Classifier (hard enforcement for creation/implementation) ──
+# Classifies the user prompt. If it looks like a creation/implementation/
+# modification request that is NOT already routed with an explicit /prefix,
+# emits a directive that the agent MUST acknowledge with [arka:routing]
+# BEFORE using any write tool. Trivial quick questions pass through
+# untouched. Explicit slash commands pass through untouched.
+_WORKFLOW_DIRECTIVE=""
+if [ -n "$user_input" ]; then
+  # Skip: explicit slash command (already routed)
+  _FIRST_CHAR=$(echo "$user_input" | head -c 1)
+  if [ "$_FIRST_CHAR" != "/" ] && [ "$_FIRST_CHAR" != "!" ]; then
+    # Match creation/implementation verbs in EN and PT (case-insensitive).
+    _VERB_PATTERN='(criar?|crie[ms]?|cria[mr]?|adicionar?|adiciona[mr]?|implementar?|implementa[mr]?|desenvolver?|desenvolve[mr]?|construir?|constru[ií]a?[mr]?|fazer?|faz[ae][mr]?|refactor(izar?)?|corrigir?|corrige[mr]?|consertar?|conserta[mr]?|create[sd]?|creating|build(s|ing)?|add(s|ed|ing)?|implement(s|ed|ing)?|develop(s|ed|ing)?|fix(es|ed|ing)?|refactor(s|ed|ing)?|make[sd]?|making)'
+    _NOUN_PATTERN='(feature|funcionalidade|skill|squad|agent[e]?|workflow|endpoint|api|component[e]?|module|m[oó]dulo|page|p[aá]gina|hook|pipeline|integration|integra[cç][aã]o|dashboard|report|report[eó]|script|test[es]?)'
+    if echo "$user_input" | grep -qiE "\b${_VERB_PATTERN}\b"; then
+      _WORKFLOW_DIRECTIVE="
+[ARKA:WORKFLOW-REQUIRED] Your user request matched a CREATION/IMPLEMENTATION pattern.
+You MUST, before using any Write, Edit, Bash with side-effects, or Agent tool:
+  1. Output on the first line: [arka:routing] <department-slug> -> <lead-agent>
+     (e.g. [arka:routing] dev -> Paulo, [arka:routing] brand -> Valentina,
+      [arka:routing] kb -> Clara, [arka:routing] mkt -> Luna)
+  2. State the workflow name and phase count in one short sentence.
+  3. Begin phase 1 (spec or plan) BEFORE any code is written.
+  4. Run the Quality Gate (Marta + Eduardo + Francisca, Opus) before claiming done.
+Trivial override: if the request is a single-file edit under 10 lines AND the user
+used an imperative like 'rename X', 'fix typo', you MAY emit [arka:trivial] <reason>
+and proceed directly. Anything else requires routing. This is enforced, not advisory.
+Skipping routing violates constitution rules squad-routing, arka-supremacy,
+spec-driven, mandatory-qa, sequential-validation."
+    fi
+  fi
+fi
+
 # ─── Output ──────────────────────────────────────────────────────────────
-_OUT_CONTEXT="${_ARKA_GREETING:-}${_SYNC_NOTICE:-}${_ROUTE_REMINDER} $python_result"
+_OUT_CONTEXT="${_ARKA_GREETING:-}${_SYNC_NOTICE:-}${_ROUTE_REMINDER}${_WORKFLOW_DIRECTIVE} $python_result"
 [ -n "$_HYGIENE" ] && _OUT_CONTEXT="$_OUT_CONTEXT $_HYGIENE"
 # Escape for JSON
 _OUT_JSON=$(python3 -c "import json,sys; print(json.dumps(sys.stdin.read()))" <<< "$_OUT_CONTEXT" 2>/dev/null)

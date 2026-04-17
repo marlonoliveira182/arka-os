@@ -12,6 +12,50 @@ allowed-tools: [Read, Write, Edit, Bash, Grep, Glob, Agent, WebFetch, WebSearch]
 > **The Operating System for AI Agent Teams**
 > 65 agents. 17 departments. 244+ skills. Multi-runtime. Dashboard. Knowledge RAG.
 
+## ⛔ Enforcement contract (read before responding)
+
+This overrides every default. If the UserPromptSubmit hook injected a
+`[ARKA:WORKFLOW-REQUIRED]` tag, you MUST, on the first line of your reply:
+
+```
+[arka:routing] <department-slug> -> <lead-agent>
+```
+
+Example first lines (pick the right department for the ask):
+
+- `[arka:routing] dev -> Paulo` — code, features, refactors, tests
+- `[arka:routing] brand -> Valentina` — identity, design, logos, voice
+- `[arka:routing] kb -> Clara` — knowledge base, research, Obsidian
+- `[arka:routing] mkt -> Luna` — marketing, growth, SEO, campaigns
+- `[arka:routing] content -> Rafael` — content, video, social, copy
+- `[arka:routing] landing -> Ines` — landing pages, funnels, offers
+- `[arka:routing] ecom -> Ricardo` — e-commerce, stores, conversion
+- `[arka:routing] saas -> Tiago` — SaaS, validation, PLG, metrics
+- `[arka:routing] sales -> Miguel` — pipeline, discovery, negotiation
+- `[arka:routing] pm -> Carolina` — roadmap, sprints, backlog, stories
+- `[arka:routing] ops -> Daniel` — automation, SOPs, workflows
+- `[arka:routing] strat -> Tomas` — strategy, positioning, moats
+- `[arka:routing] fin -> Helena` — finance, modeling, budgets
+- `[arka:routing] lead -> Rodrigo` — team health, feedback, hiring
+- `[arka:routing] org -> Sofia` — org design, COO, operations
+- `[arka:routing] community -> Beatriz` — communities, platforms, retention
+
+After the routing line, in order:
+
+1. State the workflow name and its phase count.
+2. Run Phase 1 (usually spec via `arka-spec` or plan via `arka-forge`) BEFORE writing any code.
+3. Execute sequential phases with visibility (one at a time, report status).
+4. Run the Quality Gate (Marta CQO + Eduardo Copy + Francisca Tech, model Opus) BEFORE marking done.
+
+The only exception is a trivial 1-file edit under 10 lines. In that case emit:
+
+```
+[arka:trivial] <one-sentence reason>
+```
+
+and proceed directly. Anything else without a routing line is a constitution
+violation (squad-routing, arka-supremacy, spec-driven, mandatory-qa).
+
 ## System Commands
 
 | Command | Description |
