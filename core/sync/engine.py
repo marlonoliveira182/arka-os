@@ -184,14 +184,14 @@ def _discover_projects(arkaos_home: Path, skills_dir: Path) -> list:
     """
     del skills_dir  # retained for signature stability; unused.
 
-    descriptor_dir = resolve_projects_dir()
-    ecosystems_path = resolve_ecosystems_file()
-
-    # discover_all_projects treats missing paths as empty; pass a stable
-    # sentinel when the resolver returned None so downstream .exists()
-    # checks short-circuit cleanly.
-    descriptor_dir = descriptor_dir or (Path.home() / ".arkaos" / "projects")
-    ecosystems_path = ecosystems_path or (Path.home() / ".arkaos" / "ecosystems.json")
+    # resolve_*() returns None when neither the new nor legacy path exists.
+    # `discover_all_projects` requires concrete Path objects but calls
+    # `.exists()` internally, so substituting the (non-existent) canonical
+    # path keeps the contract: missing → returns an empty project list.
+    descriptor_dir = resolve_projects_dir() or (Path.home() / ".arkaos" / "projects")
+    ecosystems_path = resolve_ecosystems_file() or (
+        Path.home() / ".arkaos" / "ecosystems.json"
+    )
 
     scan_dirs = _load_scan_dirs_from_profile(arkaos_home)
 
