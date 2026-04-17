@@ -28,8 +28,8 @@ dashboard/.nuxt/
 !CONSTITUTION.md
 
 # Private / client-specific content — never ship to npm
-arka/skills/client_commerce/
-arka/skills/client_publisher/
+arka/skills/fovory/
+arka/skills/rothbard100/
 arka/skills/platform-arka/
 arka/skills/_private/
 arka/skills/client-*/
