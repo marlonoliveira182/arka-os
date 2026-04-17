@@ -26,3 +26,11 @@ dashboard/.nuxt/
 !README.md
 !LICENSE
 !CONSTITUTION.md
+
+# Private / client-specific content — never ship to npm
+arka/skills/client_commerce/
+arka/skills/client_publisher/
+arka/skills/platform-arka/
+arka/skills/_private/
+arka/skills/client-*/
+.arkaos-private/
