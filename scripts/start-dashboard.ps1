@@ -35,6 +35,21 @@ $apiErrLog    = Join-Path $arkaosHome 'api.err.log'
 $null = New-Item -ItemType Directory -Force -Path $arkaosHome -ErrorAction SilentlyContinue
 
 # --- Kill existing dashboard processes -------------------------------------
+# dashboard.pid is machine-global and survives reboots, and Windows recycles
+# PIDs aggressively — so a remembered integer is not proof of identity. Every
+# kill is gated on the image name being one this launcher actually spawns.
+$dashboardImages = @('python.exe', 'pythonw.exe', 'node.exe')
+
+function Stop-DashboardProcess {
+    param([int] $TargetPid)
+    try {
+        $proc = Get-CimInstance Win32_Process -Filter "ProcessId=$TargetPid" -ErrorAction SilentlyContinue
+        if (-not $proc) { return }
+        if ($dashboardImages -notcontains $proc.Name) { return }
+        Stop-Process -Id $TargetPid -Force -ErrorAction SilentlyContinue
+    } catch { }
+}
+
 if (Test-Path -LiteralPath $pidFile) {
     try {
         $existingPids = Get-Content -LiteralPath $pidFile -Encoding ASCII -ErrorAction SilentlyContinue
@@ -45,9 +60,9 @@ if (Test-Path -LiteralPath $pidFile) {
                 # or the real interpreter survives holding the port.
                 try {
                     Get-CimInstance Win32_Process -Filter "ParentProcessId=$pidValue" -ErrorAction SilentlyContinue |
-                        ForEach-Object { try { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue } catch { } }
+                        ForEach-Object { Stop-DashboardProcess -TargetPid $_.ProcessId }
                 } catch { }
-                try { Stop-Process -Id $pidValue -Force -ErrorAction SilentlyContinue } catch { }
+                Stop-DashboardProcess -TargetPid $pidValue
             }
         }
     } catch { }

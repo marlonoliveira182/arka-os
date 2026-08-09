@@ -2982,7 +2982,11 @@ def terminal_sessions_list():
 @app.post("/api/terminal/sessions")
 def terminal_sessions_create(body: dict):
     from core.terminal import token as _token_mod
-    from core.terminal.session import SessionCapacityError, default_manager
+    from core.terminal.session import (
+        PtyUnavailableError,
+        SessionCapacityError,
+        default_manager,
+    )
     body = body if isinstance(body, dict) else {}
     cwd = body.get("cwd")
     shell = body.get("shell")
@@ -2994,9 +2998,10 @@ def terminal_sessions_create(body: dict):
     except SessionCapacityError as exc:
         from fastapi import HTTPException
         raise HTTPException(status_code=429, detail=str(exc)) from exc
-    except RuntimeError as exc:
-        # Windows: no Unix PTY available. Return a clean 501 (which goes
-        # through the CORS middleware) instead of an unhandled 500 that
+    except PtyUnavailableError as exc:
+        # No PTY backend on this platform (Windows without pywinpty, or
+        # ConPTY refusing the spawn). Return a clean 501, which goes
+        # through the CORS middleware, instead of an unhandled 500 that
         # the browser reports as an opaque "Failed to fetch".
         from fastapi import HTTPException
         raise HTTPException(status_code=501, detail=str(exc)) from exc

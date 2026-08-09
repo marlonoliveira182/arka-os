@@ -45,6 +45,17 @@ class SessionCapacityError(RuntimeError):
     """Raised when ``create()`` is called past the configured cap."""
 
 
+class PtyUnavailableError(RuntimeError):
+    """Raised when no PTY backend can be constructed on this platform.
+
+    On Windows the backend is pywinpty's ConPTY wrapper, which fails in
+    several unrelated ways — ``ModuleNotFoundError`` when pywinpty is not
+    installed, ``WinptyError`` when ConPTY refuses the spawn,
+    ``FileNotFoundError`` when the shell is not on PATH. The API layer
+    needs one type to turn into a 501, so ``create()`` wraps them all.
+    """
+
+
 def _default_shell() -> str:
     if os.name == "nt":
         # Windows PowerShell renders reliably under ConPTY; bare cmd.exe can
@@ -296,14 +307,8 @@ class TerminalSessionManager:
         chosen_shell = shell or _default_shell()
         chosen_cwd = cwd or _default_cwd()
         if not _PTY_SUPPORTED:
-            from core.terminal.session_windows import WindowsTerminalSession
-            session = WindowsTerminalSession(
-                session_id=sid,
-                shell=chosen_shell,
-                cwd=chosen_cwd,
-                cols=cols,
-                rows=rows,
-                scrollback_bytes=self.scrollback_bytes,
+            session = self._create_windows_session(
+                sid, chosen_shell, chosen_cwd, cols, rows
             )
         else:
             session = TerminalSession(
@@ -317,6 +322,39 @@ class TerminalSessionManager:
         self._sessions[sid] = session
         audit.log_start(sid, chosen_shell, chosen_cwd)
         return session
+
+    def _create_windows_session(
+        self,
+        sid: str,
+        shell: str,
+        cwd: str,
+        cols: int,
+        rows: int,
+    ) -> Any:
+        """Build the ConPTY backend, normalising every failure to one type.
+
+        pywinpty raises ``WinptyError`` (a plain ``Exception``), the import
+        raises ``ModuleNotFoundError``, and a missing shell raises
+        ``OSError`` — none of which the API layer can distinguish from a
+        genuine bug. Wrapping them in ``PtyUnavailableError`` is what lets
+        the endpoint answer 501 instead of an opaque, CORS-less 500.
+        """
+        try:
+            from core.terminal.session_windows import WindowsTerminalSession
+
+            return WindowsTerminalSession(
+                session_id=sid,
+                shell=shell,
+                cwd=cwd,
+                cols=cols,
+                rows=rows,
+                scrollback_bytes=self.scrollback_bytes,
+            )
+        except Exception as exc:  # noqa: BLE001 — deliberately broad, see docstring
+            raise PtyUnavailableError(
+                f"no PTY backend available on this platform: "
+                f"{type(exc).__name__}: {exc}"
+            ) from exc
 
     def get(self, session_id: str) -> Optional[TerminalSession]:
         return self._sessions.get(session_id)

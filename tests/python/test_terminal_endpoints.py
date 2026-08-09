@@ -104,20 +104,68 @@ def test_cap_returns_429(api):
 def test_no_pty_returns_501(api, monkeypatch):
     """A platform without a Unix PTY must answer 501, not an opaque 500.
 
-    ``SessionManager.create`` raises RuntimeError when no PTY backend is
-    available. Unhandled, FastAPI turns that into a 500 raised *before*
-    the CORS middleware adds its headers, so the browser reports only
-    "Failed to fetch" and the real cause never reaches the operator.
+    Drives the real production path: ``_PTY_SUPPORTED = False`` is exactly
+    what a Windows host produces (``import pty`` fails), so ``create``
+    reaches the ConPTY backend, whose import fails without pywinpty.
+    Unhandled, that becomes a 500 raised *before* the CORS middleware adds
+    its headers, so the browser reports only "Failed to fetch" and the real
+    cause never reaches the operator.
     """
     from core.terminal import session as _sess
 
-    def _no_pty(*_args, **_kwargs):
-        raise RuntimeError("PTY unavailable on this platform")
-
-    monkeypatch.setattr(_sess.default_manager(), "create", _no_pty)
+    monkeypatch.setattr(_sess, "_PTY_SUPPORTED", False)
     r = TestClient(api.app).post("/api/terminal/sessions", json={"shell": "/bin/sh"})
     assert r.status_code == 501
     assert "pty" in r.json()["detail"].lower()
+
+
+@pytest.mark.parametrize(
+    "exc",
+    [
+        ModuleNotFoundError("No module named 'winpty'"),
+        FileNotFoundError("shell not on PATH"),
+        RuntimeError("ConPTY refused the spawn"),
+        TypeError("bad dimensions"),
+    ],
+)
+def test_windows_backend_failures_all_become_501(api, monkeypatch, exc):
+    """Every way the ConPTY backend can fail must surface as 501.
+
+    pywinpty's ``WinptyError`` subclasses plain ``Exception``, so catching
+    ``RuntimeError`` alone left the real Windows failures returning 500.
+    """
+    from core.terminal import session as _sess
+
+    def _boom(*_args, **_kwargs):
+        raise exc
+
+    monkeypatch.setattr(_sess, "_PTY_SUPPORTED", False)
+    monkeypatch.setattr(
+        "core.terminal.session_windows.WindowsTerminalSession", _boom, raising=False
+    )
+    r = TestClient(api.app).post("/api/terminal/sessions", json={"shell": "/bin/sh"})
+    assert r.status_code == 501
+    assert type(exc).__name__ in r.json()["detail"]
+
+
+def test_pty_unavailable_response_keeps_cors_headers(api, monkeypatch):
+    """The whole point: the browser must see a real error, not "Failed to fetch".
+
+    A 500 escapes through ServerErrorMiddleware, which sits *outside*
+    CORSMiddleware, so the response reaches the browser without
+    ``Access-Control-Allow-Origin`` and the UI can only report an opaque
+    network failure. A handled 501 keeps the header.
+    """
+    from core.terminal import session as _sess
+
+    monkeypatch.setattr(_sess, "_PTY_SUPPORTED", False)
+    r = TestClient(api.app).post(
+        "/api/terminal/sessions",
+        json={"shell": "/bin/sh"},
+        headers={"Origin": "http://localhost:4321"},
+    )
+    assert r.status_code == 501
+    assert r.headers.get("access-control-allow-origin") is not None
 
 
 def test_origin_helper_rejects_external(api):
